@@ -196,6 +196,8 @@ We can of course extend this to deeper nesting (e.g. query each author, with the
 [Tell me more about nested select queries »](#detail2)
 
 
+<a name="detail1"></a>
+
 ## How do I use it?
 
 Zapatos provides a command line tool, which is run like so:
@@ -288,6 +290,50 @@ This is likely most useful for the database connection details. For example, on 
   "connectionString": "{{DATABASE_URL}}"
 }
 ```
+
+## Full documentation
+
+### `sql` template strings and their interpolation types
+
+#### `String`s
+
+#### `Array`s
+
+#### `sql` template strings (`SQLFragment`)
+
+#### `cols` (`ColumnNames`) and `vals` (`ColumnValues`)
+
+#### `Whereable`
+
+#### `self`
+
+#### `param` (`Parameter`)
+
+#### `default`
+
+#### `parent('columnName')` (`ParentColumn`)
+
+
+### Shortcut functions and lateral joins
+
+#### insert
+
+#### update
+
+#### upsert
+
+#### delete
+
+#### truncate
+
+#### select
+
+#### selectOne
+
+#### count
+
+
+### Transactions
 
 <!--
 What's happening here? First, we've applied the appropriate type to the object we're trying to insert: namely, `s.authors.Insertable`. This will give us type-checking and autocompletion on that object. 
