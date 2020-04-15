@@ -1,0 +1,21 @@
+body {
+  padding: 30px 15%;
+  font: 12pt/1.5 Georgia, serif;
+  background: #fff;
+}
+h1 {
+  margin-top: 0;
+}
+h1, h2, h3, h4, h5 {
+  line-height: 1.1;
+}
+a {
+  text-decoration: none;
+}
+#toc {
+  width: 250px;
+  position: fixed;
+}
+#content {
+  margin-left: 270px;
+}

@@ -1,0 +1,272 @@
+
+    <!DOCTYPE html><html>
+      <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.11.1/tocbot.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.11.1/tocbot.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/default.min.css">
+        <link rel="stylesheet" href="docs.css">
+      </head>
+      <body>
+        <div id="toc"></div>
+        <div id="content"><h1>Zapatos: <em>Zero-Abstraction Postgres for TypeScript</em></h1>
+<h2>What does it do?</h2>
+<p><a href="https://www.postgresql.org/">Postgres</a> and <a href="https://www.typescriptlang.org/">TypeScript</a> are independently awesome. Zapatos is a library that aims to make them awesome together. To achieve that, it does these five things:</p>
+<p><strong>(1) Typescript schema</strong>   A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table. This enables things 2 – 4. <a href="#thing1">Show me »</a></p>
+<p><strong>(2) Arbitrary SQL</strong>   Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back. <a href="#thing2">Show me »</a></p>
+<p><strong>(3) Everyday CRUD</strong>   Shortcut functions produce your everyday <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> queries with no fuss and no surprises, fully and automatically typed. <a href="#thing3">Show me »</a></p>
+<p><strong>(4) JOINs as nested JSON</strong>   Nested shortcut calls generate <a href="https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2">LATERAL JOIN</a> queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed. <a href="#thing4">Show me »</a></p>
+<p><strong>(5) Transactions</strong>   A transaction function helps with managing and retrying transactions. <a href="#thing5">Show me »</a></p>
+<h3>Why does it do that?</h3>
+<p>It is a truth universally acknowledged that <a href="https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch">ORMs aren’t very good</a>.</p>
+<p>I like SQL, and Postgres especially. In my experience, abstractions that obscure how SQL works, or that prioritise ease of switching to another database tomorrow over effective use of <em>this</em> database <em>today</em>, are a source of misery.</p>
+<p>I’ve also come to love strongly typed languages, and TypeScript in particular. VS Code’s type checking and autocomplete speed development, prevent bugs, and simplify refactoring. Especially when they <em>just happen</em>, they bring joy.</p>
+<p>Zapatos aims to minimise the misery of abstraction, intensify the joy of type inference, and represent a credible alternative to traditional ORMs.</p>
+<h3>What doesn’t it do?</h3>
+<p>Zapatos doesn’t handle schema migrations. Other tools can help you with this:  check out <a href="https://github.com/amacneil/dbmate">dbmate</a>, for instance.</p>
+<p>It also won’t tell you how to structure your code. Zapatos doesn’t deal in the ‘model’ classes beloved of traditional ORMs, just (fully-typed) <a href="https://twitter.com/_ericelliott/status/831965087749533698?lang=en">Plain Old JavaScript Objects</a>.</p>
+<h3>How does that look?</h3>
+<p><a name="thing1"></a></p>
+<h4><strong>(1) Typescript schema</strong>   A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table.</h4>
+<p>Take this ultra-simple SQL schema for a single table, <code>authors</code>:</p>
+<pre><code class="language-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">"authors"</span> 
+( <span class="hljs-string">"id"</span> <span class="hljs-built_in">SERIAL</span> PRIMARY <span class="hljs-keyword">KEY</span>
+, <span class="hljs-string">"name"</span> <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>
+, <span class="hljs-string">"isLiving"</span> <span class="hljs-built_in">BOOLEAN</span> );
+</code></pre>
+<p>We run <code>npx zapatos</code> to generate a file named <code>schema.ts</code>, including table definitions like this one:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">namespace</span> authors {
+  <span class="hljs-comment">/* ... */</span>
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> Selectable {
+    id: <span class="hljs-built_in">number</span>;
+    name: <span class="hljs-built_in">string</span>;
+    isLiving: <span class="hljs-built_in">boolean</span> | <span class="hljs-literal">null</span>;
+  };
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> Insertable {
+    id?: <span class="hljs-built_in">number</span> | DefaultType | SQLFragment;
+    name: <span class="hljs-built_in">string</span> | SQLFragment;
+    isLiving?: <span class="hljs-built_in">boolean</span> | <span class="hljs-literal">null</span> | DefaultType | SQLFragment;
+  };
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> Updatable <span class="hljs-keyword">extends</span> Partial&lt;Insertable&gt; { };
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> Whereable = { [K <span class="hljs-keyword">in</span> keyof Insertable]?: Exclude&lt;Insertable[K] | ParentColumn, <span class="hljs-literal">null</span> | DefaultType&gt; };
+  <span class="hljs-comment">/* ... */</span>
+}
+</code></pre>
+<p>The types are, I hope, pretty self-explanatory. <code>authors.Selectable</code> is what I’ll get back from a <code>SELECT</code> query on this table. <code>authors.Insertable</code> is what I can <code>INSERT</code>: similar to the <code>Selectable</code>, but any fields that are <code>NULL</code>able and/or have <code>DEFAULT</code> values are allowed to be missing, <code>NULL</code> or <code>DEFAULT</code>. <code>authors.Updatable</code> is what I can <code>UPDATE</code> the table with: like what I can <code>INSERT</code>, but all columns are optional: it’s a simple <code>Partial&lt;authors.Insertable&gt;</code>. <code>authors.Whereable</code>, finally, is what I can use in a <code>WHERE</code> condition</p>
+<p><code>schema.ts</code> includes a few other types that get used internally, including some handy type mappings, like this one:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> SelectableForTable&lt;T <span class="hljs-keyword">extends</span> Table&gt; = {
+  authors: authors.Selectable,
+  books: books.Selectable,
+  tags: tags.Selectable,
+  <span class="hljs-comment">/* ... */</span>
+}[T];
+</code></pre>
+<p><a href="#detail1">Tell me more about the command line tool »</a></p>
+<p><a name="thing2"></a></p>
+<h4><strong>(2) Arbitrary SQL</strong>   Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back.</h4>
+<p>Let’s insert something into that <code>authors</code> table for which we just generated the types. We’ll write the SQL query ourselves, to show that we can (we’ll see an easier way <a href="thing3">in the next section</a>):</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> db <span class="hljs-keyword">from</span> <span class="hljs-string">'./zapatos/src'</span>;
+<span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> s <span class="hljs-keyword">from</span> <span class="hljs-string">'./zapatos/schema'</span>;
+<span class="hljs-keyword">import</span> { pool } <span class="hljs-keyword">from</span> <span class="hljs-string">'./pgPool'</span>;
+
+<span class="hljs-keyword">const</span>
+  author: s.authors.Insertable = {
+    name: <span class="hljs-string">'Gabriel Garcia Marquez'</span>,
+    isLiving: <span class="hljs-literal">false</span>,
+  },
+  [insertedAuthor] = <span class="hljs-keyword">await</span> db.sql&lt;s.authors.SQL, s.authors.Selectable[]&gt;<span class="hljs-string">`
+      INSERT INTO <span class="hljs-subst">${<span class="hljs-string">"authors"</span>}</span> (<span class="hljs-subst">${db.cols(author)}</span>)
+      VALUES(<span class="hljs-subst">${db.vals(author)}</span>) RETURNING *`</span>
+    .run(pool);
+
+<span class="hljs-built_in">console</span>.log(insertedAuthor.id);
+</code></pre>
+<p>We’ve applied the appropriate type to the object we’re trying to insert (<code>s.authors.Insertable</code>), giving us type-checking and autocompletion on that object. And we’ve specified both which types are allowed as interpolated values in the template string (<code>s.authors.SQL</code>) and what type is going to be returned (<code>s.authors.Selectable[]</code>) when the query runs.</p>
+<p><em>The above code snippet is an embedded Monaco (VS Code) editor, so you can check those typings for yourself.</em></p>
+<p><a href="#detail2">Tell me more about writing arbitrary SQL »</a></p>
+<p><a name="thing3"></a></p>
+<h4><strong>(3) Everyday CRUD</strong>   Shortcut functions produce your everyday <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> queries with no fuss and no surprises, fully and automatically typed.</h4>
+<p>So — writing SQL with Zapatos is nicer than constructing a query and all its input and output types from scratch. But for a totally bog-standard CRUD query like the <code>INSERT</code> above, it still involves quite a lot of boilerplate.</p>
+<p>To eliminate the boilerplate, Zapatos supplies some simple functions to generate these sorts of queries, fully and automatically typed.</p>
+<p>Let’s use one of them — <code>insert</code> — to add two more authors:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> db <span class="hljs-keyword">from</span> <span class="hljs-string">'./zapatos/src'</span>;
+<span class="hljs-keyword">import</span> { pool } <span class="hljs-keyword">from</span> <span class="hljs-string">'./pgPool'</span>;
+
+<span class="hljs-keyword">const</span> [doug, janey] = <span class="hljs-keyword">await</span> db.insert(<span class="hljs-string">'authors'</span>, [
+  { name: <span class="hljs-string">'Douglas Adams'</span>, isLiving: <span class="hljs-literal">false</span> },
+  { name: <span class="hljs-string">'Jane Austen'</span>, isLiving: <span class="hljs-literal">false</span>},
+]).run(pool);
+
+<span class="hljs-built_in">console</span>.log(doug.id, janey.id);
+</code></pre>
+<p>The <code>insert</code> shortcut accepts a single <code>Insertable</code> or an <code>Insertable[]</code> array, and correspondingly returns a <code>Selectable</code> or a <code>Selectable[]</code> array. Since we specified <code>'authors'</code> as the first argument, and an array as the second, input and output will be checked and auto-completed as <code>authors.Insertable[]</code> and <code>authors.Selectable[]</code> respectively.</p>
+<p><em>Again, that code is in a Monaco (VS Code) editor, so you can play around with it and check those typings.</em></p>
+<p>In addition to <code>insert</code>, there are shortcuts for <code>select</code>, <code>selectOne</code> and <code>count</code>, and for <code>update</code>, <code>upsert</code>, <code>delete</code> and <code>truncate</code>.</p>
+<p><a href="#detail2">Tell me more about the shortcut functions »</a></p>
+<p><a name="thing4"></a></p>
+<h4><strong>(4) JOINs as nested JSON</strong>   Nested shortcut calls generate <a href="https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2">LATERAL JOIN</a> queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed.</h4>
+<p>CRUD is our bread and butter, but the power of SQL is that it’s <em>relational</em> — it’s in the <code>JOIN</code>s. And Postgres has some powerful JSON features that can deliver us sensibly-structured <code>JOIN</code> results without any post-processing (that’s <code>json_agg</code>, <code>json_build_object</code>, and so on).</p>
+<p>To demonstrate, let’s say that <code>authors</code> have <code>books</code> and <code>books</code> have <code>tags</code>, adding two new tables to our simple schema:</p>
+<pre><code class="language-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">"books"</span> 
+( <span class="hljs-string">"id"</span> <span class="hljs-built_in">SERIAL</span> PRIMARY <span class="hljs-keyword">KEY</span>
+, <span class="hljs-string">"authorId"</span> <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> <span class="hljs-keyword">REFERENCES</span> <span class="hljs-string">"authors"</span>(<span class="hljs-string">"id"</span>)
+, <span class="hljs-string">"title"</span> <span class="hljs-built_in">TEXT</span>
+, <span class="hljs-string">"createdAt"</span> TIMESTAMPTZ <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-keyword">now</span>() );
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">"tags"</span>
+( <span class="hljs-string">"tag"</span> <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>
+, <span class="hljs-string">"bookId"</span> <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> <span class="hljs-keyword">REFERENCES</span> <span class="hljs-string">"books"</span>(<span class="hljs-string">"id"</span>) );
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">UNIQUE</span> <span class="hljs-keyword">INDEX</span> <span class="hljs-string">"tagsUniqueIdx"</span> <span class="hljs-keyword">ON</span> <span class="hljs-string">"tags"</span>(<span class="hljs-string">"tag"</span>, <span class="hljs-string">"bookId"</span>);
+</code></pre>
+<p>Now, let’s say I want to show a list of books, each with its (one) author and (many) associated tags. We could knock up a manual query for this, of course, but it gets quite hairy. The <code>select</code> shortcut has an option called <code>lateral</code> that can nest other <code>select</code> queries and do it for us.</p>
+<p>Let’s try it:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> db <span class="hljs-keyword">from</span> <span class="hljs-string">'./zapatos/src'</span>;
+<span class="hljs-keyword">import</span> { pool } <span class="hljs-keyword">from</span> <span class="hljs-string">'./pgPool'</span>;
+
+<span class="hljs-keyword">const</span> bookAuthorTags = <span class="hljs-keyword">await</span> db.select(<span class="hljs-string">'books'</span>, db.all, {
+  lateral: {
+    author: db.selectOne(<span class="hljs-string">'authors'</span>, { id: db.parent(<span class="hljs-string">'authorId'</span>) }),
+    tags: db.select(<span class="hljs-string">'tags'</span>, { bookId: db.parent(<span class="hljs-string">'id'</span>) }),
+  }
+}).run(pool);
+
+bookAuthorTags.map(<span class="hljs-function"><span class="hljs-params">b</span> =&gt;</span> 
+  <span class="hljs-string">`<span class="hljs-subst">${b.author.name}</span>: <span class="hljs-subst">${b.title}</span> (<span class="hljs-subst">${b.tags.map(t =&gt; t.tag).join(<span class="hljs-string">', '</span>)}</span>)`</span>);
+</code></pre>
+<p>This generates an efficient three-table <code>LATERAL JOIN</code> that returns a nested JSON structure directly from the database. Every nested element is again fully and automatically typed.</p>
+<p><em>Once again, the code above is in a Monaco (VS Code) editor, so you can play with it and and check that.</em></p>
+<p>We can of course extend this to deeper nesting (e.g. query each author, with their books, with their tags); to self-joins (of a table with itself, e.g. employees to their managers in the same <code>employees</code> table); and to joins on relationships other than foreign keys (e.g. joining the nearest <em>N</em> somethings using the PostGIS <code>&lt;-&gt;</code> distance operator).</p>
+<p><a href="#detail2">Tell me more about nested select queries »</a></p>
+<p><a name="detail1"></a></p>
+<h2>How do I use it?</h2>
+<p>Zapatos provides a command line tool, which is run like so:</p>
+<pre><code>npx zapatos
+</code></pre>
+<p>This generates the TypeScript schema for your database in a folder named <code>zapatos/schema.ts</code>, and copies (or symlinks) the Zapatos source files into <code>zapatos/src</code>.</p>
+<p><strong>You <em>must</em> import the Zapatos source files from this copied/symlinked <code>zapatos/src</code> directory, <em>not</em> <code>from 'zapatos'</code> in the usual way (which would find them in <code>node_modules</code>).</strong></p>
+<p>That’s because the source files depend on themselves importing your custom-generated <code>schema.ts</code>, which they cannot do if they’re imported in the usual way.</p>
+<p>Of course, before you can run <code>npx zapatos</code>, you need to install and configure it.</p>
+<h3>Installation</h3>
+<p>Install it with <code>npm</code>:</p>
+<pre><code>npm install --save-dev zapatos
+</code></pre>
+<p>If you are copying the source files, which is the recommended default, you can make the library a <code>devDependency</code> with <code>--save-dev</code> (conversely, if you are symlinking them, which is not recommended, you will need the library as a standard <code>dependency</code> with plain old <code>--save</code>).</p>
+<h3>Configuration</h3>
+<p>Add a top-level file <code>zapatosconfig.json</code> to your project. Here’s an example:</p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">"db"</span>: {
+    <span class="hljs-attr">"connectionString"</span>: <span class="hljs-string">"postgresql://localhost/example_db"</span>
+  },
+  <span class="hljs-attr">"outDir"</span>: <span class="hljs-string">"./src"</span>,
+  <span class="hljs-attr">"schemas"</span>: {
+    <span class="hljs-attr">"public"</span>: {
+      <span class="hljs-attr">"include"</span>: <span class="hljs-string">"*"</span>,
+      <span class="hljs-attr">"exclude"</span>: [<span class="hljs-string">"excluded_table_1"</span>, <span class="hljs-string">"excluded_table_2"</span>]
+    }
+  }
+}
+</code></pre>
+<p>This file has up to four top-level keys:</p>
+<ul>
+<li>
+<p><code>&quot;db&quot;</code> gives Postgres connection details. You can provide <a href="https://node-postgres.com/features/connecting#Programmatic">anything that you’d pass</a> to <code>new pg.Pool(/* ... */)</code> here. This key is required.</p>
+</li>
+<li>
+<p><code>&quot;outDir&quot;</code> defines where your <code>zapatos</code> folder will be created, relative to the project root. If not specified, it defaults to the project root, i.e. <code>&quot;.&quot;</code>.</p>
+</li>
+<li>
+<p><code>&quot;srcMode&quot;</code> can take the values <code>&quot;copy&quot;</code> (the default) or <code>&quot;symlink&quot;</code>, determining whether <code>zapatos/src</code> will be a copy of the folder <code>node_modules/zapatos/src</code> or just a symlink to it. The symlink option can cause enormous headaches with tools like <code>ts-node</code> and <code>ts-jest</code>, which refuse to compile anything inside <code>node_modules</code>, and is not recommended.</p>
+</li>
+<li>
+<p><code>&quot;schemas&quot;</code> is an object that lets you define schemas and tables to include and exclude. Each key is a schema name, and each value is an object with keys <code>&quot;include&quot;</code> and <code>&quot;exclude&quot;</code>. Those keys can take the values <code>&quot;*&quot;</code> (for all tables in schema) or an array of table names. The <code>&quot;exclude&quot;</code> list takes precedence over the <code>&quot;include&quot;</code> list.</p>
+<p>Note that schemas are not fully supported by Zapatos, since they are not included in the output types, but they will work by using Postgres’s search path if none of your table names is duplicated across different schemas.</p>
+<p>If not specified, the default value for <code>&quot;schemas&quot;</code> includes all tables in the <code>public</code> schema, i.e.:</p>
+<pre><code class="language-json">"schemas": {
+  "public": {
+    "include": "*",
+    "exclude: []
+  }
+}
+</code></pre>
+<p>One more example: if you use PostGIS, you’ll likely want to exclude its system tables:</p>
+<pre><code class="language-json">"schemas": {
+  "public": {
+    "include": "*",
+    "exclude": [
+      "geography_columns", 
+      "geometry_columns", 
+      "raster_columns", 
+      "raster_overviews", 
+      "spatial_ref_sys"
+    ]
+  }
+}
+</code></pre>
+</li>
+</ul>
+<h4>Environment variables</h4>
+<p>All values in <code>zapatosconfig.json</code> can have environment variables (<code>process.env.SOMETHING</code>) interpolated via <a href="https://handlebarsjs.com/">handlebars</a>-style doubly-curly-brackets <code>{{variables}}</code>.</p>
+<p>This is likely most useful for the database connection details. For example, on Heroku you’d probably configure your database as:</p>
+<pre><code class="language-json">"db": {
+  "connectionString": "{{DATABASE_URL}}"
+}
+</code></pre>
+<h2>Full documentation</h2>
+<h3><code>sql</code> template strings and their interpolation types</h3>
+<h4><code>String</code>s</h4>
+<h4><code>Array</code>s</h4>
+<h4><code>sql</code> template strings (<code>SQLFragment</code>)</h4>
+<h4><code>cols</code> (<code>ColumnNames</code>) and <code>vals</code> (<code>ColumnValues</code>)</h4>
+<h4><code>Whereable</code></h4>
+<h4><code>self</code></h4>
+<h4><code>param</code> (<code>Parameter</code>)</h4>
+<h4><code>default</code></h4>
+<h4><code>parent('columnName')</code> (<code>ParentColumn</code>)</h4>
+<h3>Shortcut functions and lateral joins</h3>
+<h4>insert</h4>
+<h4>update</h4>
+<h4>upsert</h4>
+<h4>delete</h4>
+<h4>truncate</h4>
+<h4>select</h4>
+<h4>selectOne</h4>
+<h4>count</h4>
+<h3>Transactions</h3>
+<!--
+What's happening here? First, we've applied the appropriate type to the object we're trying to insert: namely, `s.authors.Insertable`. This will give us type-checking and autocompletion on that object. 
+
+Then we've used our [tagged template function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals), `db.sql`, to put together the query. We've specified both which types are allowed as interpolated values in the template string (`s.authors.SQL`) and what type is going to be returned (`s.authors.Selectable[]`) when the query runs.
+
+Within the query, we've interpolated the table name, `${"authors"}`. Only the `authors` table and its column names are allowed as interpolated strings with `s.authors.SQL` specified, so it's hard to get that wrong. And we've used two helper functions, `db.cols` and `db.vals`, which split our `Insertable` into matching-ordered column names and (`$1`, `$2`, ... parameterized) values.
+
+Finally, we've run the query using a specific `pg` client or pool, and accessed the newly inserted record's serial `id` value.
+-->
+<!--
+Let's try one more raw SQL query, and search for the record we just inserted:
+
+```typescript
+import * as db from './zapatos/src';
+import * as s from './zapatos/schema';
+import { pool } from './pgPool';
+
+const 
+  searchPattern = '%marquez%',  // could be untrusted 
+  [firstFoundAuthor] = await db.sql<s.authors.SQL, s.authors.Selectable[]>`
+    SELECT * FROM ${"authors"} WHERE ${{
+      isLiving: false,
+      name: db.sql<db.SQL>`${db.self} ILIKE ${db.param(searchPattern)}`,
+    }}`
+  .run(pool);
+
+console.log(firstFoundAuthor?.name);
+```
+
+Much of this is familiar. What's new is the object we've interpolated in our `WHERE` clause, an `s.authors.Wherable` that compiles to the conjunction of the given conditions. 
+
+You'll notice that a `Whereable` can take either primitive values, which are simply tested for equality, or a `SQLFragment` (the return type of `db.sql`), in which case we can do whatever we want, using the symbol `db.self` to refer to the keyed column name.
+-->
+</div>
+        <script src="docs.js"></script>
+      </body>
+    </html>
+    

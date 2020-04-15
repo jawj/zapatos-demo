@@ -140,7 +140,7 @@ console.log(doug.id, janey.id);
 
 The `insert` shortcut accepts a single `Insertable` or an `Insertable[]` array, and correspondingly returns a `Selectable` or a `Selectable[]` array. Since we specified `'authors'` as the first argument, and an array as the second, input and output will be checked and auto-completed as `authors.Insertable[]` and `authors.Selectable[]` respectively.
 
-_Again, that code is in a Monaco (VS Code) editor, so you can play around and check those typings._ 
+_Again, that code is in a Monaco (VS Code) editor, so you can play around with it and check those typings._ 
 
 In addition to `insert`, there are shortcuts for `select`, `selectOne` and `count`, and for `update`, `upsert`, `delete` and `truncate`. 
 
