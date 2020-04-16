@@ -3,17 +3,19 @@
 
 ## What does it do?
 
-[Postgres](https://www.postgresql.org/) and [TypeScript](https://www.typescriptlang.org/) are independently awesome. Zapatos is a library that aims to make them awesome together. To achieve that, it does these five things:
+[Postgres](https://www.postgresql.org/) and [TypeScript](https://www.typescriptlang.org/) are independently awesome. Zapatos is a library that aims to make them awesome together. 
 
-**(1) Typescript schema** &nbsp; A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table. This enables things 2 – 4. [Show me »](#thing1)
+To achieve that, it does these five things:
 
-**(2) Arbitrary SQL** &nbsp; Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back. [Show me »](#thing2)
+* **Typescript schema** &nbsp; A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table. This enables the following three things. [Show me »](#typescript-schema)
 
-**(3) Everyday CRUD** &nbsp; Shortcut functions produce your everyday [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) queries with no fuss and no surprises, fully and automatically typed. [Show me »](#thing3)
+* **Arbitrary SQL** &nbsp; Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back. [Show me »](#arbitrary-sql)
 
-**(4) JOINs as nested JSON** &nbsp; Nested shortcut calls generate [LATERAL JOIN](https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2) queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed. [Show me »](#thing4)
+* **Everyday CRUD** &nbsp; Shortcut functions produce your everyday [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) queries with no fuss and no surprises, fully and automatically typed. [Show me »](#everyday-crud)
 
-**(5) Transactions** &nbsp; A transaction function helps with managing and retrying transactions. [Show me »](#thing5)
+* **JOINs as nested JSON** &nbsp; Nested shortcut calls generate [LATERAL JOIN](https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2) queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed. [Show me »](#joins-as-nested-json)
+
+* **Transactions** &nbsp; A transaction function helps with managing and retrying transactions. [Show me »](#transaction)
 
 
 ### Why does it do that?
@@ -36,9 +38,9 @@ It also won't tell you how to structure your code. Zapatos doesn't deal in the '
 
 ### How does that look?
 
-<a name="thing1"></a>
+#### Typescript schema
 
-#### **(1) Typescript schema** &nbsp; A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table.
+**A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table.**
 
 Take this ultra-simple SQL schema for a single table, `authors`:
 
@@ -65,7 +67,8 @@ export namespace authors {
     isLiving?: boolean | null | DefaultType | SQLFragment;
   };
   export interface Updatable extends Partial<Insertable> { };
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export type Whereable = { [K in keyof Insertable]?: 
+    Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
   /* ... */
 }
 ```
@@ -85,11 +88,11 @@ export type SelectableForTable<T extends Table> = {
 
 [Tell me more about the command line tool »](#detail1)
 
-<a name="thing2"></a>
+#### Arbitrary SQL
 
-#### **(2) Arbitrary SQL** &nbsp; Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back.
+**Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back.**
 
-Let's insert something into that `authors` table for which we just generated the types. We'll write the SQL query ourselves, to show that we can (we'll see an easier way [in the next section](thing3)):
+Let's insert something into that `authors` table for which we just generated the types. We'll write the SQL query ourselves, to show that we can (we'll see an easier way [in the next section](#everyday-crud)):
 
 ```typescript
 import * as db from './zapatos/src';
@@ -116,9 +119,9 @@ _The above code snippet is an embedded Monaco (VS Code) editor, so you can check
 [Tell me more about writing arbitrary SQL »](#detail2)
 
 
-<a name="thing3"></a>
+#### Everyday CRUD
 
-#### **(3) Everyday CRUD** &nbsp; Shortcut functions produce your everyday [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) queries with no fuss and no surprises, fully and automatically typed.
+**Shortcut functions produce your everyday [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) queries with no fuss and no surprises, fully and automatically typed.**
 
 So — writing SQL with Zapatos is nicer than constructing a query and all its input and output types from scratch. But for a totally bog-standard CRUD query like the `INSERT` above, it still involves quite a lot of boilerplate.
 
@@ -146,9 +149,10 @@ In addition to `insert`, there are shortcuts for `select`, `selectOne` and `coun
 
 [Tell me more about the shortcut functions »](#detail2)
 
-<a name="thing4"></a>
 
-#### **(4) JOINs as nested JSON** &nbsp; Nested shortcut calls generate [LATERAL JOIN](https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2) queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed.
+#### JOINs as nested JSON
+
+**Nested shortcut calls generate [LATERAL JOIN](https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2) queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed.**
 
 CRUD is our bread and butter, but the power of SQL is that it's _relational_ — it's in the `JOIN`s. And Postgres has some powerful JSON features that can deliver us sensibly-structured `JOIN` results without any post-processing (that's `json_agg`, `json_build_object`, and so on).
 
@@ -196,7 +200,10 @@ We can of course extend this to deeper nesting (e.g. query each author, with the
 [Tell me more about nested select queries »](#detail2)
 
 
-<a name="detail1"></a>
+#### Transactions
+
+...
+
 
 ## How do I use it?
 
@@ -334,6 +341,10 @@ This is likely most useful for the database connection details. For example, on 
 
 
 ### Transactions
+
+
+## Licence
+
 
 <!--
 What's happening here? First, we've applied the appropriate type to the object we're trying to insert: namely, `s.authors.Insertable`. This will give us type-checking and autocompletion on that object. 

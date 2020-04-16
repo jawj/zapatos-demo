@@ -10,12 +10,25 @@
         <div id="toc"></div>
         <div id="content"><h1>Zapatos: <em>Zero-Abstraction Postgres for TypeScript</em></h1>
 <h2>What does it do?</h2>
-<p><a href="https://www.postgresql.org/">Postgres</a> and <a href="https://www.typescriptlang.org/">TypeScript</a> are independently awesome. Zapatos is a library that aims to make them awesome together. To achieve that, it does these five things:</p>
-<p><strong>(1) Typescript schema</strong>   A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table. This enables things 2 – 4. <a href="#thing1">Show me »</a></p>
-<p><strong>(2) Arbitrary SQL</strong>   Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back. <a href="#thing2">Show me »</a></p>
-<p><strong>(3) Everyday CRUD</strong>   Shortcut functions produce your everyday <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> queries with no fuss and no surprises, fully and automatically typed. <a href="#thing3">Show me »</a></p>
-<p><strong>(4) JOINs as nested JSON</strong>   Nested shortcut calls generate <a href="https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2">LATERAL JOIN</a> queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed. <a href="#thing4">Show me »</a></p>
-<p><strong>(5) Transactions</strong>   A transaction function helps with managing and retrying transactions. <a href="#thing5">Show me »</a></p>
+<p><a href="https://www.postgresql.org/">Postgres</a> and <a href="https://www.typescriptlang.org/">TypeScript</a> are independently awesome. Zapatos is a library that aims to make them awesome together.</p>
+<p>To achieve that, it does these five things:</p>
+<ul>
+<li>
+<p><strong>Typescript schema</strong>   A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table. This enables the following three things. <a href="#typescript-schema">Show me »</a></p>
+</li>
+<li>
+<p><strong>Arbitrary SQL</strong>   Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back. <a href="#arbitrary-sql">Show me »</a></p>
+</li>
+<li>
+<p><strong>Everyday CRUD</strong>   Shortcut functions produce your everyday <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> queries with no fuss and no surprises, fully and automatically typed. <a href="#everyday-crud">Show me »</a></p>
+</li>
+<li>
+<p><strong>JOINs as nested JSON</strong>   Nested shortcut calls generate <a href="https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2">LATERAL JOIN</a> queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed. <a href="#joins-as-nested-json">Show me »</a></p>
+</li>
+<li>
+<p><strong>Transactions</strong>   A transaction function helps with managing and retrying transactions. <a href="#transaction">Show me »</a></p>
+</li>
+</ul>
 <h3>Why does it do that?</h3>
 <p>It is a truth universally acknowledged that <a href="https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch">ORMs aren’t very good</a>.</p>
 <p>I like SQL, and Postgres especially. In my experience, abstractions that obscure how SQL works, or that prioritise ease of switching to another database tomorrow over effective use of <em>this</em> database <em>today</em>, are a source of misery.</p>
@@ -25,8 +38,8 @@
 <p>Zapatos doesn’t handle schema migrations. Other tools can help you with this:  check out <a href="https://github.com/amacneil/dbmate">dbmate</a>, for instance.</p>
 <p>It also won’t tell you how to structure your code. Zapatos doesn’t deal in the ‘model’ classes beloved of traditional ORMs, just (fully-typed) <a href="https://twitter.com/_ericelliott/status/831965087749533698?lang=en">Plain Old JavaScript Objects</a>.</p>
 <h3>How does that look?</h3>
-<p><a name="thing1"></a></p>
-<h4><strong>(1) Typescript schema</strong>   A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table.</h4>
+<h4>Typescript schema</h4>
+<p><strong>A command-line tool speaks to your Postgres database and writes up a TypeScript schema of detailed types for every table.</strong></p>
 <p>Take this ultra-simple SQL schema for a single table, <code>authors</code>:</p>
 <pre><code class="language-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">"authors"</span> 
 ( <span class="hljs-string">"id"</span> <span class="hljs-built_in">SERIAL</span> PRIMARY <span class="hljs-keyword">KEY</span>
@@ -47,7 +60,8 @@
     isLiving?: <span class="hljs-built_in">boolean</span> | <span class="hljs-literal">null</span> | DefaultType | SQLFragment;
   };
   <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> Updatable <span class="hljs-keyword">extends</span> Partial&lt;Insertable&gt; { };
-  <span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> Whereable = { [K <span class="hljs-keyword">in</span> keyof Insertable]?: Exclude&lt;Insertable[K] | ParentColumn, <span class="hljs-literal">null</span> | DefaultType&gt; };
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> Whereable = { [K <span class="hljs-keyword">in</span> keyof Insertable]?: 
+    Exclude&lt;Insertable[K] | ParentColumn, <span class="hljs-literal">null</span> | DefaultType&gt; };
   <span class="hljs-comment">/* ... */</span>
 }
 </code></pre>
@@ -61,9 +75,9 @@
 }[T];
 </code></pre>
 <p><a href="#detail1">Tell me more about the command line tool »</a></p>
-<p><a name="thing2"></a></p>
-<h4><strong>(2) Arbitrary SQL</strong>   Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back.</h4>
-<p>Let’s insert something into that <code>authors</code> table for which we just generated the types. We’ll write the SQL query ourselves, to show that we can (we’ll see an easier way <a href="thing3">in the next section</a>):</p>
+<h4>Arbitrary SQL</h4>
+<p><strong>Simple building blocks help you write arbitrary SQL and manually apply the right types to what goes in and what comes back.</strong></p>
+<p>Let’s insert something into that <code>authors</code> table for which we just generated the types. We’ll write the SQL query ourselves, to show that we can (we’ll see an easier way <a href="#everyday-crud">in the next section</a>):</p>
 <pre><code class="language-typescript"><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> db <span class="hljs-keyword">from</span> <span class="hljs-string">'./zapatos/src'</span>;
 <span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> s <span class="hljs-keyword">from</span> <span class="hljs-string">'./zapatos/schema'</span>;
 <span class="hljs-keyword">import</span> { pool } <span class="hljs-keyword">from</span> <span class="hljs-string">'./pgPool'</span>;
@@ -83,8 +97,8 @@
 <p>We’ve applied the appropriate type to the object we’re trying to insert (<code>s.authors.Insertable</code>), giving us type-checking and autocompletion on that object. And we’ve specified both which types are allowed as interpolated values in the template string (<code>s.authors.SQL</code>) and what type is going to be returned (<code>s.authors.Selectable[]</code>) when the query runs.</p>
 <p><em>The above code snippet is an embedded Monaco (VS Code) editor, so you can check those typings for yourself.</em></p>
 <p><a href="#detail2">Tell me more about writing arbitrary SQL »</a></p>
-<p><a name="thing3"></a></p>
-<h4><strong>(3) Everyday CRUD</strong>   Shortcut functions produce your everyday <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> queries with no fuss and no surprises, fully and automatically typed.</h4>
+<h4>Everyday CRUD</h4>
+<p><strong>Shortcut functions produce your everyday <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> queries with no fuss and no surprises, fully and automatically typed.</strong></p>
 <p>So — writing SQL with Zapatos is nicer than constructing a query and all its input and output types from scratch. But for a totally bog-standard CRUD query like the <code>INSERT</code> above, it still involves quite a lot of boilerplate.</p>
 <p>To eliminate the boilerplate, Zapatos supplies some simple functions to generate these sorts of queries, fully and automatically typed.</p>
 <p>Let’s use one of them — <code>insert</code> — to add two more authors:</p>
@@ -102,8 +116,8 @@
 <p><em>Again, that code is in a Monaco (VS Code) editor, so you can play around with it and check those typings.</em></p>
 <p>In addition to <code>insert</code>, there are shortcuts for <code>select</code>, <code>selectOne</code> and <code>count</code>, and for <code>update</code>, <code>upsert</code>, <code>delete</code> and <code>truncate</code>.</p>
 <p><a href="#detail2">Tell me more about the shortcut functions »</a></p>
-<p><a name="thing4"></a></p>
-<h4><strong>(4) JOINs as nested JSON</strong>   Nested shortcut calls generate <a href="https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2">LATERAL JOIN</a> queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed.</h4>
+<h4>JOINs as nested JSON</h4>
+<p><strong>Nested shortcut calls generate <a href="https://www.postgresql.org/docs/12/queries-table-expressions.html#id-1.5.6.6.5.10.2">LATERAL JOIN</a> queries, resulting in arbitrarily complex nested JSON structures, still fully and automatically typed.</strong></p>
 <p>CRUD is our bread and butter, but the power of SQL is that it’s <em>relational</em> — it’s in the <code>JOIN</code>s. And Postgres has some powerful JSON features that can deliver us sensibly-structured <code>JOIN</code> results without any post-processing (that’s <code>json_agg</code>, <code>json_build_object</code>, and so on).</p>
 <p>To demonstrate, let’s say that <code>authors</code> have <code>books</code> and <code>books</code> have <code>tags</code>, adding two new tables to our simple schema:</p>
 <pre><code class="language-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">"books"</span> 
@@ -137,7 +151,8 @@ bookAuthorTags.map(<span class="hljs-function"><span class="hljs-params">b</span
 <p><em>Once again, the code above is in a Monaco (VS Code) editor, so you can play with it and and check that.</em></p>
 <p>We can of course extend this to deeper nesting (e.g. query each author, with their books, with their tags); to self-joins (of a table with itself, e.g. employees to their managers in the same <code>employees</code> table); and to joins on relationships other than foreign keys (e.g. joining the nearest <em>N</em> somethings using the PostGIS <code>&lt;-&gt;</code> distance operator).</p>
 <p><a href="#detail2">Tell me more about nested select queries »</a></p>
-<p><a name="detail1"></a></p>
+<h4>Transactions</h4>
+<p>…</p>
 <h2>How do I use it?</h2>
 <p>Zapatos provides a command line tool, which is run like so:</p>
 <pre><code>npx zapatos
@@ -232,6 +247,7 @@ bookAuthorTags.map(<span class="hljs-function"><span class="hljs-params">b</span
 <h4>selectOne</h4>
 <h4>count</h4>
 <h3>Transactions</h3>
+<h2>Licence</h2>
 <!--
 What's happening here? First, we've applied the appropriate type to the object we're trying to insert: namely, `s.authors.Insertable`. This will give us type-checking and autocompletion on that object. 
 
