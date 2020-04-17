@@ -1,6 +1,6 @@
 body {
   padding: 30px 12.5%;
-  font: 12pt/1.5 Georgia, serif;
+  font: 12pt/1.667 source-serif-pro, Georgia, serif;
   background: #fff;
   color: #444;
 }
@@ -28,21 +28,76 @@ p {
   margin: 12px 0;
 }
 code, pre {
-  font: 11pt/1.5 Menlo, Monaco, monospace;
+  font: 11pt/1.5 source-code-pro, Menlo, Monaco, monospace;
   background: #f4f4f4;
 }
 pre {
   padding: 6px 12px;
   margin: 15px 0 20px;
+  white-space: pre-wrap;
+}
+.sqltext, .sqlvalues, .sqlresult {
+  position: relative;
+  margin: 0;
+}
+.sqltext::before, .sqlvalues::before, .sqlresult::before {
+  background: #444;
+  color: #fff;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-weight: bold;
+  font-size: 9pt;
+  display: inline-block;
+  padding: 0 3px;
+}
+.sqltext code, .sqlvalues code, .sqlresult code {
+  background: transparent;
+}
+.sqltext {
+  background: #eeeeff;
+}
+.sqltext::before {
+  content: '⟶ SQL';
+}
+.sqlvalues {
+  background: #ffeeff;
+  margin-top: 0;
+}
+.sqlvalues::before {
+  content: '+ $1, $2, ...';
+}
+.sqlresult {
+  background: #ffeedd;
+  margin: 15px 0 20px;
+}
+.sqlresult::before {
+  content: '⟶ result';
 }
 code {
   display: inline-block;
-  padding: 0 4px;
+  padding: 0 2px;
+}
+#content {
+  margin-left: 32%;
+  padding-left: 30px;
 }
 #toc {
-  width: 260px;
+  width: 24%;
   position: fixed;
   line-height: 1.1;
+}
+@media (max-width: 1024px) {
+  body {
+    padding-right: 2.5%;
+    padding-left: 2.5%;
+  }
+  #content {
+    margin-left: 32%;
+  }
+  #toc {
+    width: 30.4%;
+  }
 }
 #toc ol {
   list-style-type: none;
@@ -57,6 +112,4 @@ code {
   display: inline-block;
   padding: 5px 0;
 }
-#content {
-  margin-left: 300px;
-}
+

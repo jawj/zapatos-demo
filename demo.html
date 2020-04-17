@@ -14,7 +14,7 @@
   <script src="./files.js"></script>
   <script>
     const js =
-        `import * as db from './zapatos/src';
+      `import * as db from './zapatos/src';
 import * as s from './zapatos/schema';
 import { pool } from './pgPool';
 
@@ -93,14 +93,14 @@ import { pool } from './pgPool';
     require.config({ paths: { 'vs': './node_modules/monaco-editor/min/vs' } });
     require(['vs/editor/editor.main'], async function () {
 
-      const 
+      const
         ts = monaco.languages.typescript,
         tsDefs = ts.typescriptDefaults;
 
       tsDefs.setCompilerOptions({ strict: true, target: ts.ScriptTarget.ES2015 });
       for (const file in files) tsDefs.addExtraLib(files[file], `file:///${file}`);
 
-      const 
+      const
         uri = monaco.Uri.parse('file:///main.ts'),
         model = monaco.editor.createModel(js, 'typescript', uri),
         opts = { model, minimap: { enabled: false } },

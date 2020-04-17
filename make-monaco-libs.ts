@@ -8,7 +8,7 @@ const recurseNodes = (node: string): string[] =>
     fs.readdirSync(node).reduce<string[]>((memo, n) =>
       memo.concat(recurseNodes(path.join(node, n))), []);
 
-const all = recurseNodes('zapatos').reduce<{ [k: string]: string; }>((memo, path) => { 
+const all = recurseNodes('zapatos').reduce<{ [k: string]: string; }>((memo, path) => {
   memo[path] = fs.readFileSync(path, { encoding: 'utf8' });
   return memo;
 }, {});

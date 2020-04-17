@@ -29,13 +29,6 @@ I've also come to love strongly typed languages, and TypeScript in particular. V
 Zapatos aims to minimise the misery of abstraction, intensify the joy of type inference, and represent a credible alternative to traditional ORMs.
 
 
-### What doesn't it do?
-
-Zapatos doesn't handle schema migrations. Other tools can help you with this:  check out [dbmate](https://github.com/amacneil/dbmate), for instance.
-
-It also won't tell you how to structure your code. Zapatos doesn't deal in the 'model' classes beloved of traditional ORMs, just (fully-typed) [Plain Old JavaScript Objects](https://twitter.com/_ericelliott/status/831965087749533698?lang=en).
-
-
 ### How does that look?
 
 #### Typescript schema
@@ -141,7 +134,7 @@ const [doug, janey] = await db.insert('authors', [
 console.log(doug.id, janey.id);
 ```
 
-The `insert` shortcut accepts a single `Insertable` or an `Insertable[]` array, and correspondingly returns a `Selectable` or a `Selectable[]` array. Since we specified `'authors'` as the first argument, and an array as the second, input and output will be checked and auto-completed as `authors.Insertable[]` and `authors.Selectable[]` respectively.
+The `insert` shortcut accepts a single `Insertable` or an `Insertable[]` array, and correspondingly returns a single `Selectable` or a `Selectable[]` array. Since we specified `'authors'` as the first argument here, and an array as the second, input and output will be checked and auto-completed as `authors.Insertable[]` and `authors.Selectable[]` respectively.
 
 _Again, that code is in a Monaco (VS Code) editor, so you can play around with it and check those typings._ 
 
@@ -188,7 +181,7 @@ const bookAuthorTags = await db.select('books', db.all, {
 }).run(pool);
 
 bookAuthorTags.map(b => 
-  `${b.author.name}: ${b.title} (${b.tags.map(t => t.tag).join(', ')})`);
+  `${b.author!.name}: ${b.title} (${b.tags.map(t => t.tag).join(', ')})`);
 ```
 
 This generates an efficient three-table `LATERAL JOIN` that returns a nested JSON structure directly from the database. Every nested element is again fully and automatically typed.
@@ -203,6 +196,13 @@ We can of course extend this to deeper nesting (e.g. query each author, with the
 #### Transactions
 
 ...
+
+
+### What doesn't it do?
+
+Zapatos doesn't handle schema migrations. Other tools can help you with this:  check out [dbmate](https://github.com/amacneil/dbmate), for instance.
+
+It also won't tell you how to structure your code. Zapatos doesn't deal in the 'model' classes beloved of traditional ORMs, just (fully-typed) [Plain Old JavaScript Objects](https://twitter.com/_ericelliott/status/831965087749533698?lang=en).
 
 
 ## How do I use it?
@@ -288,7 +288,7 @@ This file has up to four top-level keys:
 
 #### Environment variables
 
-All values in `zapatosconfig.json` can have environment variables (`process.env.SOMETHING`) interpolated via [handlebars](https://handlebarsjs.com/)-style doubly-curly-brackets `{{variables}}`. 
+All values in `zapatosconfig.json` can have environment variables (node.js's `process.env.SOMETHING`) interpolated via [handlebars](https://handlebarsjs.com/)-style doubly-curly-brackets `{{variables}}`. 
 
 This is likely most useful for the database connection details. For example, on Heroku you'd probably configure your database as:
 

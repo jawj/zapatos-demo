@@ -5,13 +5,13 @@ import * as db from "./zapatos/src";
 import * as s from "./zapatos/schema";
 
 
-db.setConfig({ verbose: true });
+db.setConfig({ queryListener: (str) => console.log(str) });
 const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_ormless' });
 
 (async () => {
 
   await (async () => {
-    
+
     // setup (uses shortcut functions)
     const allTables: s.AllTables = ["appleTransactions", "authors", "books", "emailAuthentication", "employees", "stores", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
@@ -33,7 +33,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
     ]).run(pool);
 
     console.log(insertedAuthors);
-    
+
     const insertedBooks = await db.insert("books", [
       {
         authorId: 1,
@@ -64,13 +64,13 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
       query = db.sql<s.books.SQL>`
         SELECT * FROM ${"books"} WHERE ${{ authorId }}`,
       existingBooks: s.books.Selectable[] = await query.run(pool);
-  
+
     console.log(existingBooks);
   })();
 
   await (async () => {
     console.log('\n=== SELECT with a SQLFragment in a Whereable ===\n');
-    
+
     const
       authorId = 1,
       days = 7,
@@ -82,7 +82,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
             ${db.self} > now() - ${db.param(days)} * INTERVAL '1 DAY'`,
         }}`,
       existingBooks: s.books.Selectable[] = await query.run(pool);
-  
+
     console.log(existingBooks);
   })();
 
@@ -98,7 +98,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         INSERT INTO ${"books"} (${db.cols(newBook)})
         VALUES (${db.vals(newBook)})`,
       insertedBooks: s.books.Selectable[] = await query.run(pool);
-    
+
     console.log(insertedBooks);
   })();
 
@@ -114,7 +114,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         FROM ${"books"} JOIN ${"authors"} 
           ON ${"books"}.${"authorId"} = ${"authors"}.${"id"}`,
       bookAuthors: bookAuthorSelectable[] = await query.run(pool);
-    
+
     console.log(bookAuthors);
   })();
 
@@ -147,7 +147,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
 
     // note: for consistency, and to keep JSON ops in the DB, we could instead write:
     // SELECT coalesce(jsonb_agg(to_jsonb("authors".*) || to_jsonb(bq.*)), '[]') FROM ...
-    
+
     const
       query = db.sql<authorBooksSQL>`
         SELECT ${"authors"}.*, bq.* 
@@ -195,17 +195,17 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
     const
       query = db.sql<s.books.SQL>`SELECT ${db.cols(bookCols)} FROM ${"books"}`,
       bookData: BookDatum[] = await query.run(pool);
-    
+
     console.log(bookData);
   })();
-  
+
   await (async () => {
     console.log('\n=== Shortcut functions ===\n');
-    
+
     const
       authorId = 123,
       existingBooks = await db.select("books", { authorId }).run(pool);
-    
+
     console.log(existingBooks);
 
     const allBookTitles = await db.select("books", db.all, { columns: ['title'] }).run(pool);
@@ -241,7 +241,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         title: "Cheerio, and Thanks for All the Fish",
       }]
     ).run(pool);
-    
+
     console.log(savedBooks);
 
     const
@@ -252,7 +252,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         { title: properTitle },
         { id: fishBookId }
       ).run(pool);
-    
+
     console.log(updatedBook);
 
     const deleted = await db.deletes('books', { id: fishBookId }).run(pool);
@@ -269,7 +269,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         consecutiveFailedLogins: db.sql`${db.self} + 1`,
         lastFailedLogin: db.sql`now()`,
       }, { email }).run(pool);
-    
+
     console.log(insertedEmail, updatedEmail);
   })();
 
@@ -303,7 +303,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
 
   await (async () => {
     console.log('\n=== Shortcut one-to-many join ===\n');
-    
+
     const q = await db.select('authors', db.all, {
       lateral: { books: db.select('books', { authorId: db.parent('id') }) }
     });
@@ -328,7 +328,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
 
   await (async () => {
     console.log('\n=== Shortcut multi-level one-to-many join ===\n');
-    
+
     const authorsBooksTags = await db.select('authors', db.all, {
       lateral: {
         books: db.select('books', { authorId: db.parent('id') }, {
@@ -463,19 +463,19 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
       result = await db.transaction(pool, db.Isolation.Serializable, async txnClient => {
 
         const emailAuth = await db.selectOne("emailAuthentication", { email }).run(txnClient);
-        
+
         console.log(emailAuth);
 
         // do stuff with email record -- e.g. check a password, handle successful login --
         // but remember everything non-DB-related in this function must be idempotent
         // since it might be called several times in case of serialization failures
-        
+
         return db.update("emailAuthentication", {
           consecutiveFailedLogins: db.sql`${db.self} + 1`,
           lastFailedLogin: db.sql`now()`,
         }, { email }).run(txnClient);
       });
-    
+
     console.log(result);
   })();
 
