@@ -6,12 +6,16 @@
     "public": {
       "include": "*",
       "exclude": [
-        "geography_columns", 
-        "geometry_columns", 
-        "raster_columns", 
-        "raster_overviews", 
+        "geography_columns",
+        "geometry_columns",
+        "raster_columns",
+        "raster_overviews",
         "spatial_ref_sys"
       ]
+    },
+    "extra": {
+      "include": "*",
+      "exclude": []
     }
   }
 }

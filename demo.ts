@@ -1,19 +1,21 @@
 #!/usr/bin/env ts-node
 
 import * as pg from 'pg';
-import * as db from "./zapatos/src";
-import * as s from "./zapatos/schema";
+import * as db from './zapatos/src';
+import * as s from './zapatos/schema';
 
-
-db.setConfig({ queryListener: (str) => console.log(str) });
+db.setConfig({
+  queryListener: console.log,
+  resultListener: console.log,
+  transactionListener: console.log,
+});
 const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_ormless' });
 
 (async () => {
-
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "books", "emailAuthentication", "employees", "stores", "tags"];
+    const allTables: s.AllTables = ["accounts", "appleTransactions", "authors", "books", "emailAuthentication", "employees", "stores", "tags", "tableInOtherSchema"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedAuthors = await db.insert("authors", [
