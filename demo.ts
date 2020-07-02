@@ -225,7 +225,6 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
     console.log(numberOfBooks);
 
     const noBooksAtAll = await db.select("books", { authorId: -1 }).run(pool);
-
     console.log(noBooksAtAll);
 
     const noBookAtAll = await db.selectOne("books", { authorId: -1 }).run(pool);
