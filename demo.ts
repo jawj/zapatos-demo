@@ -42,7 +42,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         title: "Pride and Prejudice",
       }, {
         authorId: 123,
-        title: "Love in the Time of Cholera"
+        title: "Love in the Time of Cholera",
       }
     ]).run(pool);
 
