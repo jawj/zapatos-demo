@@ -13,7 +13,7 @@
     "@types/pg": "^7.14.3",
     "pg": "^8.2.1",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.5",
+    "typescript": "^3.9.7",
     "zapatos": "^0.1.45"
   }
 }

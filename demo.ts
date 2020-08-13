@@ -15,8 +15,12 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["accounts", "appleTransactions", "authors", "books", "emailAuthentication", "employees", "stores", "tags", "tableInOtherSchema"];
+    const allTables: s.AllTables = ["accounts", "appleTransactions", "authors", "books", "emailAuthentication", "employees", "identityTest", "stores", "tags", "tableInOtherSchema"];
     await db.truncate(allTables, "CASCADE").run(pool);
+
+    const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
+
+    console.log(insertedIdentityTest);
 
     const insertedAuthors = await db.insert("authors", [
       {
@@ -332,7 +336,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
 
     const authorsBooksTags = await db.select('authors', db.all, {
       lateral: {
-        books: db.select('books', { authorId: db.parent('id') }, {
+        books: db.select('books', { authorId: db.parent<s.authors.Column>('id') }, {
           lateral: {
             tags: db.select('tags', { bookId: db.parent('id') })
           }
