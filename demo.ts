@@ -1,8 +1,8 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S ts-node --files
 
 import * as pg from 'pg';
-import * as db from './zapatos/src';
-import * as s from './zapatos/schema';
+import * as db from 'zapatos';
+import * as s from 'zapatos/schema';
 
 db.setConfig({
   queryListener: console.log,

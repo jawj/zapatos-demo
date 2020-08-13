@@ -8,4 +8,8 @@
     "module": "CommonJS",
     "strict": true,
   },
+  "files": [
+    "./demo.ts",
+    "./zapatos/schema.d.ts"
+  ]
 }
