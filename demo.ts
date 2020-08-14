@@ -484,5 +484,37 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
     console.log(result);
   })();
 
+  await (async () => {
+    console.log('\n=== FOR UPDATE etc ===\n');
+    const
+      baseQuery = db.selectOne("authors", { id: 123 }),
+      lockingQuery = db.sql<db.SQL, ReturnType<typeof baseQuery.run>>`${baseQuery} FOR UPDATE`,
+      result = await lockingQuery.run(pool);
+  })();
+
+  await (async () => {
+    console.log('\n=== IN queries with vals ===\n');
+    const
+      ids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
+      authors = await db.select("authors", { id: db.sql<db.SQL>`${db.self} IN (${db.vals(ids)})` }).run(pool);
+  })();
+
+  await (async () => {
+    console.log('\n=== SELECT locking clauses ===\n');
+    const
+      authors1 = await db.select("authors", db.all, { lock: { for: "UPDATE" } }).run(pool),
+      authors2 = await db.select("authors", db.all, { lock: { for: "UPDATE", of: "authors", wait: "NOWAIT" } }).run(pool),
+      // this next one is senseless but produces valid SQL
+      authors3 = await db.select("authors", db.all, {
+        lateral: { books: db.select("books", { authorId: db.parent("id") }) },
+        lock: [
+          { for: 'UPDATE', of: ['authors', 'books'], wait: 'SKIP LOCKED' },
+          { for: 'SHARE', of: ['tags'] },
+        ],
+      }).compile();
+
+    console.log(authors3);
+  })();
+
   await pool.end();
 })();
