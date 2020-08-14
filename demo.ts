@@ -502,14 +502,13 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
   await (async () => {
     console.log('\n=== SELECT locking clauses ===\n');
     const
-      authors1 = await db.select("authors", db.all, { lock: { for: "UPDATE" } }).run(pool),
+      authors1 = await db.select("authors", db.all, { lock: { for: "NO KEY UPDATE" } }).run(pool),
       authors2 = await db.select("authors", db.all, { lock: { for: "UPDATE", of: "authors", wait: "NOWAIT" } }).run(pool),
       // this next one is senseless but produces valid SQL
       authors3 = await db.select("authors", db.all, {
-        lateral: { books: db.select("books", { authorId: db.parent("id") }) },
         lock: [
-          { for: 'UPDATE', of: ['authors', 'books'], wait: 'SKIP LOCKED' },
-          { for: 'SHARE', of: 'tags' },
+          { for: "UPDATE", of: ["authors", "books"], wait: "SKIP LOCKED" },
+          { for: "SHARE", of: "tags" },
         ],
       }).compile();
 
