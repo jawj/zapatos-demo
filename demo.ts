@@ -509,7 +509,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
         lateral: { books: db.select("books", { authorId: db.parent("id") }) },
         lock: [
           { for: 'UPDATE', of: ['authors', 'books'], wait: 'SKIP LOCKED' },
-          { for: 'SHARE', of: ['tags'] },
+          { for: 'SHARE', of: 'tags' },
         ],
       }).compile();
 
