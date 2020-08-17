@@ -3,6 +3,7 @@
 import * as pg from 'pg';
 import * as db from './zapatos/src';
 import * as s from './zapatos/schema';
+import * as zu from './zapatos/src/utils';
 
 db.setConfig({
   queryListener: console.log,
@@ -514,6 +515,30 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
 
     console.log(authors3);
   })();
+
+  /*
+  await (async () => {
+    console.log('\n=== multiVals ===\n');
+
+    // it's hard to make this worl well without recreating the whole insert shortcut
+
+    const multiVals = (insertables: s.Insertable[]) =>
+      zu.mapWithSeparator(
+        zu.completeKeysWithDefault(insertables),
+        db.sql`, `,
+        v => db.sql`(${db.vals(v)})`,
+      );
+
+    const authorData: s.authors.Insertable[] = [
+      { name: 'William Shakespeare' },
+      { name: 'Christopher Marlowe', isLiving: false },
+    ];
+    await db.sql`
+      INSERT INTO ${"authors"} (${db.cols(authorData)}) 
+      VALUES ${multiVals(authorData)}`.run(pool);
+
+  })();
+  */
 
   await pool.end();
 })();
