@@ -516,11 +516,20 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
     console.log(authors3);
   })();
 
+  await (async () => {
+    console.log('\n=== INSERT/UPSERT nothing ===\n');
+    const
+      nothing = await db.insert("authors", []).run(pool),
+      forcedNothing = await db.insert("authors", []).run(pool, true),
+      upsertNothing = await db.upsert("authors", [], "id").run(pool),
+      forcedUpsertNothing = await db.upsert("authors", [], "id").run(pool, true);
+  })();
+
   /*
   await (async () => {
     console.log('\n=== multiVals ===\n');
 
-    // it's hard to make this worl well without recreating the whole insert shortcut
+    // it's hard to make this work well without recreating the whole insert shortcut
 
     const multiVals = (insertables: s.Insertable[]) =>
       zu.mapWithSeparator(
