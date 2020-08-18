@@ -7,7 +7,7 @@ import * as zu from './zapatos/src/utils';
 
 db.setConfig({
   queryListener: console.log,
-  resultListener: console.log,
+  resultListener: (x) => console.dir(x, { depth: null }),
   transactionListener: console.log,
 });
 const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_ormless' });
@@ -523,6 +523,25 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
       forcedNothing = await db.insert("authors", []).run(pool, true),
       upsertNothing = await db.upsert("authors", [], "id").run(pool),
       forcedUpsertNothing = await db.upsert("authors", [], "id").run(pool, true);
+  })();
+
+  await (async () => {
+    console.log('\n=== SELECT column shenanigans ===\n');
+    const
+      noCols = await db.select("authors", db.all, { columns: [] }).run(pool),
+      noColsExtras = await db.select("authors", db.all, {
+        columns: [],
+        extras: { idPlusPlus: db.sql<db.SQL, number>`${"id"} + 1` },
+      }).run(pool),
+      noColsLateral = await db.select("authors", db.all, {
+        columns: [],
+        lateral: { books: db.select("books", { authorId: db.parent("id") }) },
+      }).run(pool),
+      noColsExtrasLateral = await db.select("authors", db.all, {
+        columns: [],
+        extras: { idPlusPlus: db.sql<db.SQL, number>`${"id"} + 1` },
+        lateral: { books: db.select("books", { authorId: db.parent("id") }) },
+      }).run(pool);
   })();
 
   /*
