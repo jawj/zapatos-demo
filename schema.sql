@@ -60,3 +60,24 @@ CREATE TABLE "stores"
 , "geom" GEOMETRY NOT NULL
 );
 CREATE INDEX "storesGeomIdx" ON "stores" USING gist("geom");
+
+CREATE DOMAIN "mySpecialJsonb" AS jsonb;
+CREATE DOMAIN "mySpecialGeometry" AS geometry;
+
+CREATE TABLE "customTypes"
+( "id" SERIAL PRIMARY KEY
+, "structuredDocument" "mySpecialJsonb" NOT NULL
+, "location" geometry
+, "otherLocation" "mySpecialGeometry"
+);
+
+CREATE CAST (json AS geometry) WITH FUNCTION ST_GeomFromGeoJSON(json) AS ASSIGNMENT;
+CREATE CAST (jsonb AS geometry) WITH FUNCTION ST_GeomFromGeoJSON(jsonb) AS ASSIGNMENT;
+
+CREATE SCHEMA "extra";
+CREATE TABLE "extra"."tableInOtherSchema"
+( "id" SERIAL PRIMARY KEY
+, "details" TEXT
+);
+
+ALTER DATABASE "zapatos_demo" SET search_path TO "$user", extra, public;

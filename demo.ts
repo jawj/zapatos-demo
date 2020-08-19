@@ -3,20 +3,21 @@
 import * as pg from 'pg';
 import * as db from './zapatos/src';
 import * as s from './zapatos/schema';
-import * as zu from './zapatos/src/utils';
 
 db.setConfig({
   queryListener: console.log,
   resultListener: (x) => console.dir(x, { depth: null }),
   transactionListener: console.log,
+  castArrayParamsToJson: true,
+  castObjectParamsToJson: true,
 });
-const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_ormless' });
+const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapatos_demo' });
 
 (async () => {
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["accounts", "appleTransactions", "authors", "books", "emailAuthentication", "employees", "identityTest", "stores", "tags", "tableInOtherSchema"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "books", "customTypes", "emailAuthentication", "employees", "identityTest", "stores", "tags", "tableInOtherSchema"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -395,7 +396,6 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
           alias: 'nearby',
           order: [{ by: db.sql<s.stores.SQL>`${"geom"} <-> ${db.parent("geom")}`, direction: 'ASC' }],
           limit: 3,
-          columns: ['name'],
           extras: {
             distance: db.sql<s.stores.SQL, number>`ST_Distance(${"geom"}, ${db.parent("geom")})`
           },
@@ -404,6 +404,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
     }).run(pool);
 
     console.log(localStore);
+    console.log(localStore?.alternatives.map(s => s.geom.type));
   })();
 
 
@@ -544,11 +545,26 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost/mostly_orml
       }).run(pool);
   })();
 
+  await (async () => {
+    console.log('\n=== geometry and automatic CASTs ===\n');
+    const inserted = await db.insert("customTypes", {
+      structuredDocument: [1, 2, 3],
+      location: { type: 'Point', coordinates: [1, 2] },
+      otherLocation: { type: 'LineString', coordinates: [[1, 2], [3, 4]] },
+    }).run(pool);
+
+    console.log(inserted.otherLocation?.type);
+  })();
+
   /*
+  import * as zu from './zapatos/src/utils';
+  
+  // ...
+
   await (async () => {
     console.log('\n=== multiVals ===\n');
 
-    // it's hard to make this work well without recreating the whole insert shortcut
+    // turns out it's hard to make this work well without recreating the whole insert shortcut
 
     const multiVals = (insertables: s.Insertable[]) =>
       zu.mapWithSeparator(

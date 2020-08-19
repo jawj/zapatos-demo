@@ -1,6 +1,6 @@
 {
   "db": {
-    "connectionString": "postgresql://localhost/mostly_ormless"
+    "connectionString": "postgresql://localhost:5433/zapatos_demo"
   },
   "schemas": {
     "public": {
