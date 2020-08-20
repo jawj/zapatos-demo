@@ -16,6 +16,7 @@ import type {
   GenericSQLExpression,
   ColumnNames,
   ColumnValues,
+  Parameter,
   ParentColumn,
   DefaultType,
 } from './src/core';
@@ -43,8 +44,8 @@ export namespace tableInOtherSchema {
     details: string | null;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    details?: string | null | DefaultType | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    details?: string | Parameter<string> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -81,10 +82,10 @@ export namespace appleTransactions {
     latestReceiptData: string | null;
   }
   export interface Insertable {
-    environment: appleEnvironment | SQLFragment;
-    originalTransactionId: string | SQLFragment;
-    accountId: number | SQLFragment;
-    latestReceiptData?: string | null | DefaultType | SQLFragment;
+    environment: appleEnvironment | Parameter<appleEnvironment> | SQLFragment;
+    originalTransactionId: string | Parameter<string> | SQLFragment;
+    accountId: number | Parameter<number> | SQLFragment;
+    latestReceiptData?: string | Parameter<string> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -108,9 +109,9 @@ export namespace authors {
     isLiving: boolean | null;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    name: string | SQLFragment;
-    isLiving?: boolean | null | DefaultType | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    name: string | Parameter<string> | SQLFragment;
+    isLiving?: boolean | Parameter<boolean> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -136,11 +137,11 @@ export namespace books {
     updatedAt: Date;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    authorId: number | SQLFragment;
-    title?: string | null | DefaultType | SQLFragment;
-    createdAt?: Date | DateString | DefaultType | SQLFragment;
-    updatedAt?: Date | DateString | DefaultType | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    authorId: number | Parameter<number> | SQLFragment;
+    title?: string | Parameter<string> | null | DefaultType | SQLFragment;
+    createdAt?: Date | Parameter<Date> | DateString | DefaultType | SQLFragment;
+    updatedAt?: Date | Parameter<Date> | DateString | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -167,16 +168,18 @@ export namespace customTypes {
     name: PgDomainIllegal_characters_text | null;
     blah: PgDomainContinue | null;
     bar: PgDomainSQL | null;
+    numbers: number[] | null;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    structuredDocument?: PgDomainMySpecialJsonb | null | DefaultType | SQLFragment;
-    location?: PgTypeGeometry | null | DefaultType | SQLFragment;
-    otherLocation?: PgDomainMySpecialGeometry | null | DefaultType | SQLFragment;
-    furtherLocations?: PgType_mySpecialGeometry | null | DefaultType | SQLFragment;
-    name?: PgDomainIllegal_characters_text | null | DefaultType | SQLFragment;
-    blah?: PgDomainContinue | null | DefaultType | SQLFragment;
-    bar?: PgDomainSQL | null | DefaultType | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    structuredDocument?: PgDomainMySpecialJsonb | Parameter<PgDomainMySpecialJsonb> | null | DefaultType | SQLFragment;
+    location?: PgTypeGeometry | Parameter<PgTypeGeometry> | null | DefaultType | SQLFragment;
+    otherLocation?: PgDomainMySpecialGeometry | Parameter<PgDomainMySpecialGeometry> | null | DefaultType | SQLFragment;
+    furtherLocations?: PgType_mySpecialGeometry | Parameter<PgType_mySpecialGeometry> | null | DefaultType | SQLFragment;
+    name?: PgDomainIllegal_characters_text | Parameter<PgDomainIllegal_characters_text> | null | DefaultType | SQLFragment;
+    blah?: PgDomainContinue | Parameter<PgDomainContinue> | null | DefaultType | SQLFragment;
+    bar?: PgDomainSQL | Parameter<PgDomainSQL> | null | DefaultType | SQLFragment;
+    numbers?: number[] | Parameter<number[]> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -200,9 +203,9 @@ export namespace emailAuthentication {
     lastFailedLogin: Date | null;
   }
   export interface Insertable {
-    email: string | SQLFragment;
-    consecutiveFailedLogins?: number | DefaultType | SQLFragment;
-    lastFailedLogin?: Date | DateString | null | DefaultType | SQLFragment;
+    email: string | Parameter<string> | SQLFragment;
+    consecutiveFailedLogins?: number | Parameter<number> | DefaultType | SQLFragment;
+    lastFailedLogin?: Date | Parameter<Date> | DateString | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -226,9 +229,9 @@ export namespace employees {
     managerId: number | null;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    name: string | SQLFragment;
-    managerId?: number | null | DefaultType | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    name: string | Parameter<string> | SQLFragment;
+    managerId?: number | Parameter<number> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -251,8 +254,8 @@ export namespace identityTest {
     data: string | null;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    data?: string | null | DefaultType | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    data?: string | Parameter<string> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -276,9 +279,9 @@ export namespace stores {
     geom: PgTypeGeometry;
   }
   export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    name: string | SQLFragment;
-    geom: PgTypeGeometry | SQLFragment;
+    id?: number | Parameter<number> | DefaultType | SQLFragment;
+    name: string | Parameter<string> | SQLFragment;
+    geom: PgTypeGeometry | Parameter<PgTypeGeometry> | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -301,8 +304,8 @@ export namespace tags {
     bookId: number;
   }
   export interface Insertable {
-    tag: string | SQLFragment;
-    bookId: number | SQLFragment;
+    tag: string | Parameter<string> | SQLFragment;
+    bookId: number | Parameter<number> | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };

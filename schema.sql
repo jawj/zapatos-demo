@@ -77,6 +77,7 @@ CREATE TABLE "customTypes"
 , "name" "illegal/characters.text"
 , "blah" "continue"  -- JS/TS reserved word
 , "bar" "SQL" -- Zapatos object name clash
+, "numbers" "real"[]
 );
 
 CREATE CAST (json AS geometry) WITH FUNCTION ST_GeomFromGeoJSON(json) AS ASSIGNMENT;

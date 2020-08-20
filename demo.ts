@@ -546,11 +546,13 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   })();
 
   await (async () => {
-    console.log('\n=== geometry and automatic CASTs ===\n');
+    console.log('\n=== geometry and CASTs ===\n');
     const inserted = await db.insert("customTypes", {
       structuredDocument: [1, 2, 3],
       location: { type: 'Point', coordinates: [1, 2] },
-      otherLocation: { type: 'LineString', coordinates: [[1, 2], [3, 4]] },
+      otherLocation: db.param({ type: 'LineString', coordinates: [[1, 2], [3, 4]] }, true),
+      bar: '12',
+      numbers: db.param([1, 2, 3], false),
     }).run(pool);
 
     console.log(inserted.otherLocation?.type);
