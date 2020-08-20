@@ -61,14 +61,22 @@ CREATE TABLE "stores"
 );
 CREATE INDEX "storesGeomIdx" ON "stores" USING gist("geom");
 
+
 CREATE DOMAIN "mySpecialJsonb" AS jsonb;
 CREATE DOMAIN "mySpecialGeometry" AS geometry;
+CREATE DOMAIN "illegal/characters.text" AS text;
+CREATE DOMAIN "continue" AS real;
+CREATE DOMAIN "SQL" AS text;
 
 CREATE TABLE "customTypes"
 ( "id" SERIAL PRIMARY KEY
-, "structuredDocument" "mySpecialJsonb" NOT NULL
+, "structuredDocument" "mySpecialJsonb"
 , "location" geometry
 , "otherLocation" "mySpecialGeometry"
+, "furtherLocations" "mySpecialGeometry"[]
+, "name" "illegal/characters.text"
+, "blah" "continue"  -- JS/TS reserved word
+, "bar" "SQL" -- Zapatos object name clash
 );
 
 CREATE CAST (json AS geometry) WITH FUNCTION ST_GeomFromGeoJSON(json) AS ASSIGNMENT;
@@ -80,4 +88,4 @@ CREATE TABLE "extra"."tableInOtherSchema"
 , "details" TEXT
 );
 
-ALTER DATABASE "zapatos_demo" SET search_path TO "$user", extra, public;
+ALTER DATABASE "zapatos_demo" SET search_path TO "$user", public, extra;

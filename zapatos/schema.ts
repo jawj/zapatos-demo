@@ -20,9 +20,45 @@ import type {
   DefaultType,
 } from './src/core';
 
-import type geometry from './custom/geometry';
-import type mySpecialGeometry from './custom/mySpecialGeometry';
-import type mySpecialJsonb from './custom/mySpecialJsonb';
+import type PgDomainContinue from './custom/PgDomainContinue';
+import type PgDomainIllegal_characters_text from './custom/PgDomainIllegal_characters_text';
+import type PgDomainMySpecialGeometry from './custom/PgDomainMySpecialGeometry';
+import type PgDomainMySpecialJsonb from './custom/PgDomainMySpecialJsonb';
+import type PgDomainSQL from './custom/PgDomainSQL';
+import type PgTypeGeometry from './custom/PgTypeGeometry';
+import type PgType_mySpecialGeometry from './custom/PgType_mySpecialGeometry';
+
+
+/* === schema: extra === */
+
+/* --- enums --- */
+
+
+/* --- tables --- */
+
+export namespace tableInOtherSchema {
+  export type Table = 'tableInOtherSchema';
+  export interface Selectable {
+    id: number;
+    details: string | null;
+  }
+  export interface Insertable {
+    id?: number | DefaultType | SQLFragment;
+    details?: string | null | DefaultType | SQLFragment;
+  }
+  export interface Updatable extends Partial<Insertable> { }
+  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export type JSONSelectable = { [K in keyof Selectable]:
+    Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
+    Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
+    Selectable[K]
+  };
+  export type UniqueIndex = 'tableInOtherSchema_pkey';
+  export type Column = keyof Selectable;
+  export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+  export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable | (keyof Updatable)[]> | ColumnValues<Updatable>;
+  export type SQL = SQLExpression | SQLExpression[];
+}
 
 
 /* === schema: public === */
@@ -124,15 +160,23 @@ export namespace customTypes {
   export type Table = 'customTypes';
   export interface Selectable {
     id: number;
-    structuredDocument: mySpecialJsonb;
-    location: geometry | null;
-    otherLocation: mySpecialGeometry | null;
+    structuredDocument: PgDomainMySpecialJsonb | null;
+    location: PgTypeGeometry | null;
+    otherLocation: PgDomainMySpecialGeometry | null;
+    furtherLocations: PgType_mySpecialGeometry | null;
+    name: PgDomainIllegal_characters_text | null;
+    blah: PgDomainContinue | null;
+    bar: PgDomainSQL | null;
   }
   export interface Insertable {
     id?: number | DefaultType | SQLFragment;
-    structuredDocument: mySpecialJsonb | SQLFragment;
-    location?: geometry | null | DefaultType | SQLFragment;
-    otherLocation?: mySpecialGeometry | null | DefaultType | SQLFragment;
+    structuredDocument?: PgDomainMySpecialJsonb | null | DefaultType | SQLFragment;
+    location?: PgTypeGeometry | null | DefaultType | SQLFragment;
+    otherLocation?: PgDomainMySpecialGeometry | null | DefaultType | SQLFragment;
+    furtherLocations?: PgType_mySpecialGeometry | null | DefaultType | SQLFragment;
+    name?: PgDomainIllegal_characters_text | null | DefaultType | SQLFragment;
+    blah?: PgDomainContinue | null | DefaultType | SQLFragment;
+    bar?: PgDomainSQL | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -229,12 +273,12 @@ export namespace stores {
   export interface Selectable {
     id: number;
     name: string;
-    geom: geometry;
+    geom: PgTypeGeometry;
   }
   export interface Insertable {
     id?: number | DefaultType | SQLFragment;
     name: string | SQLFragment;
-    geom: geometry | SQLFragment;
+    geom: PgTypeGeometry | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
@@ -274,48 +318,16 @@ export namespace tags {
   export type SQL = SQLExpression | SQLExpression[];
 }
 
-
-/* === schema: extra === */
-
-/* --- enums --- */
-
-
-/* --- tables --- */
-
-export namespace tableInOtherSchema {
-  export type Table = 'tableInOtherSchema';
-  export interface Selectable {
-    id: number;
-    details: string | null;
-  }
-  export interface Insertable {
-    id?: number | DefaultType | SQLFragment;
-    details?: string | null | DefaultType | SQLFragment;
-  }
-  export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
-  export type JSONSelectable = { [K in keyof Selectable]:
-    Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
-    Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
-    Selectable[K]
-  };
-  export type UniqueIndex = 'tableInOtherSchema_pkey';
-  export type Column = keyof Selectable;
-  export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
-  export type SQLExpression = GenericSQLExpression | Table | Whereable | Column | ColumnNames<Updatable | (keyof Updatable)[]> | ColumnValues<Updatable>;
-  export type SQL = SQLExpression | SQLExpression[];
-}
-
 /* === cross-table types === */
 
-export type Table = appleTransactions.Table | authors.Table | books.Table | customTypes.Table | emailAuthentication.Table | employees.Table | identityTest.Table | stores.Table | tags.Table | tableInOtherSchema.Table;
-export type Selectable = appleTransactions.Selectable | authors.Selectable | books.Selectable | customTypes.Selectable | emailAuthentication.Selectable | employees.Selectable | identityTest.Selectable | stores.Selectable | tags.Selectable | tableInOtherSchema.Selectable;
-export type Whereable = appleTransactions.Whereable | authors.Whereable | books.Whereable | customTypes.Whereable | emailAuthentication.Whereable | employees.Whereable | identityTest.Whereable | stores.Whereable | tags.Whereable | tableInOtherSchema.Whereable;
-export type Insertable = appleTransactions.Insertable | authors.Insertable | books.Insertable | customTypes.Insertable | emailAuthentication.Insertable | employees.Insertable | identityTest.Insertable | stores.Insertable | tags.Insertable | tableInOtherSchema.Insertable;
-export type Updatable = appleTransactions.Updatable | authors.Updatable | books.Updatable | customTypes.Updatable | emailAuthentication.Updatable | employees.Updatable | identityTest.Updatable | stores.Updatable | tags.Updatable | tableInOtherSchema.Updatable;
-export type UniqueIndex = appleTransactions.UniqueIndex | authors.UniqueIndex | books.UniqueIndex | customTypes.UniqueIndex | emailAuthentication.UniqueIndex | employees.UniqueIndex | identityTest.UniqueIndex | stores.UniqueIndex | tags.UniqueIndex | tableInOtherSchema.UniqueIndex;
-export type Column = appleTransactions.Column | authors.Column | books.Column | customTypes.Column | emailAuthentication.Column | employees.Column | identityTest.Column | stores.Column | tags.Column | tableInOtherSchema.Column;
-export type AllTables = [appleTransactions.Table, authors.Table, books.Table, customTypes.Table, emailAuthentication.Table, employees.Table, identityTest.Table, stores.Table, tags.Table, tableInOtherSchema.Table];
+export type Table = appleTransactions.Table | authors.Table | books.Table | customTypes.Table | emailAuthentication.Table | employees.Table | identityTest.Table | stores.Table | tableInOtherSchema.Table | tags.Table;
+export type Selectable = appleTransactions.Selectable | authors.Selectable | books.Selectable | customTypes.Selectable | emailAuthentication.Selectable | employees.Selectable | identityTest.Selectable | stores.Selectable | tableInOtherSchema.Selectable | tags.Selectable;
+export type Whereable = appleTransactions.Whereable | authors.Whereable | books.Whereable | customTypes.Whereable | emailAuthentication.Whereable | employees.Whereable | identityTest.Whereable | stores.Whereable | tableInOtherSchema.Whereable | tags.Whereable;
+export type Insertable = appleTransactions.Insertable | authors.Insertable | books.Insertable | customTypes.Insertable | emailAuthentication.Insertable | employees.Insertable | identityTest.Insertable | stores.Insertable | tableInOtherSchema.Insertable | tags.Insertable;
+export type Updatable = appleTransactions.Updatable | authors.Updatable | books.Updatable | customTypes.Updatable | emailAuthentication.Updatable | employees.Updatable | identityTest.Updatable | stores.Updatable | tableInOtherSchema.Updatable | tags.Updatable;
+export type UniqueIndex = appleTransactions.UniqueIndex | authors.UniqueIndex | books.UniqueIndex | customTypes.UniqueIndex | emailAuthentication.UniqueIndex | employees.UniqueIndex | identityTest.UniqueIndex | stores.UniqueIndex | tableInOtherSchema.UniqueIndex | tags.UniqueIndex;
+export type Column = appleTransactions.Column | authors.Column | books.Column | customTypes.Column | emailAuthentication.Column | employees.Column | identityTest.Column | stores.Column | tableInOtherSchema.Column | tags.Column;
+export type AllTables = [appleTransactions.Table, authors.Table, books.Table, customTypes.Table, emailAuthentication.Table, employees.Table, identityTest.Table, stores.Table, tableInOtherSchema.Table, tags.Table];
 
 
 export type SelectableForTable<T extends Table> = {
@@ -327,8 +339,8 @@ export type SelectableForTable<T extends Table> = {
   employees: employees.Selectable;
   identityTest: identityTest.Selectable;
   stores: stores.Selectable;
-  tags: tags.Selectable;
   tableInOtherSchema: tableInOtherSchema.Selectable;
+  tags: tags.Selectable;
 }[T];
 
 export type WhereableForTable<T extends Table> = {
@@ -340,8 +352,8 @@ export type WhereableForTable<T extends Table> = {
   employees: employees.Whereable;
   identityTest: identityTest.Whereable;
   stores: stores.Whereable;
-  tags: tags.Whereable;
   tableInOtherSchema: tableInOtherSchema.Whereable;
+  tags: tags.Whereable;
 }[T];
 
 export type InsertableForTable<T extends Table> = {
@@ -353,8 +365,8 @@ export type InsertableForTable<T extends Table> = {
   employees: employees.Insertable;
   identityTest: identityTest.Insertable;
   stores: stores.Insertable;
-  tags: tags.Insertable;
   tableInOtherSchema: tableInOtherSchema.Insertable;
+  tags: tags.Insertable;
 }[T];
 
 export type UpdatableForTable<T extends Table> = {
@@ -366,8 +378,8 @@ export type UpdatableForTable<T extends Table> = {
   employees: employees.Updatable;
   identityTest: identityTest.Updatable;
   stores: stores.Updatable;
-  tags: tags.Updatable;
   tableInOtherSchema: tableInOtherSchema.Updatable;
+  tags: tags.Updatable;
 }[T];
 
 export type UniqueIndexForTable<T extends Table> = {
@@ -379,8 +391,8 @@ export type UniqueIndexForTable<T extends Table> = {
   employees: employees.UniqueIndex;
   identityTest: identityTest.UniqueIndex;
   stores: stores.UniqueIndex;
-  tags: tags.UniqueIndex;
   tableInOtherSchema: tableInOtherSchema.UniqueIndex;
+  tags: tags.UniqueIndex;
 }[T];
 
 export type ColumnForTable<T extends Table> = {
@@ -392,8 +404,8 @@ export type ColumnForTable<T extends Table> = {
   employees: employees.Column;
   identityTest: identityTest.Column;
   stores: stores.Column;
-  tags: tags.Column;
   tableInOtherSchema: tableInOtherSchema.Column;
+  tags: tags.Column;
 }[T];
 
 export type SQLForTable<T extends Table> = {
@@ -405,7 +417,7 @@ export type SQLForTable<T extends Table> = {
   employees: employees.SQL;
   identityTest: identityTest.SQL;
   stores: stores.SQL;
-  tags: tags.SQL;
   tableInOtherSchema: tableInOtherSchema.SQL;
+  tags: tags.SQL;
 }[T];
 

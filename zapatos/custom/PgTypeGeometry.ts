@@ -31,6 +31,6 @@ interface MultiPolygon {
   coordinates: Coordinate[][][];
 }
 
-type geometry = Point | MultiPoint | LineString | MultiLineString | Polygon | MultiPolygon;
+type PgTypeGeometry = Point | MultiPoint | LineString | MultiLineString | Polygon | MultiPolygon;
 
-export default geometry;
+export default PgTypeGeometry;

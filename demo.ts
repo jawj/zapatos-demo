@@ -17,7 +17,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "books", "customTypes", "emailAuthentication", "employees", "identityTest", "stores", "tags", "tableInOtherSchema"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "books", "customTypes", "emailAuthentication", "employees", "identityTest", "stores", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
