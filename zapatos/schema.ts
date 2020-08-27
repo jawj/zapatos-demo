@@ -21,13 +21,7 @@ import type {
   DefaultType,
 } from './src/core';
 
-import type PgDomainContinue from './custom/PgDomainContinue';
-import type PgDomainIllegal_characters_text from './custom/PgDomainIllegal_characters_text';
-import type PgDomainMySpecialGeometry from './custom/PgDomainMySpecialGeometry';
-import type PgDomainMySpecialJsonb from './custom/PgDomainMySpecialJsonb';
-import type PgDomainSQL from './custom/PgDomainSQL';
-import type PgTypeGeometry from './custom/PgTypeGeometry';
-import type PgType_mySpecialGeometry from './custom/PgType_mySpecialGeometry';
+import * as c from './custom';
 
 
 /* === schema: extra === */
@@ -161,24 +155,24 @@ export namespace customTypes {
   export type Table = 'customTypes';
   export interface Selectable {
     id: number;
-    structuredDocument: PgDomainMySpecialJsonb | null;
-    location: PgTypeGeometry | null;
-    otherLocation: PgDomainMySpecialGeometry | null;
-    furtherLocations: PgType_mySpecialGeometry | null;
-    name: PgDomainIllegal_characters_text | null;
-    blah: PgDomainContinue | null;
-    bar: PgDomainSQL | null;
+    structuredDocument: c.PgMySpecialJsonb | null;
+    location: c.PgGeometry | null;
+    otherLocation: c.PgMySpecialGeometry | null;
+    furtherLocations: c.Pg_mySpecialGeometry | null;
+    name: c.PgIllegal_characters_text | null;
+    blah: c.PgContinue | null;
+    bar: c.PgSQL | null;
     numbers: number[] | null;
   }
   export interface Insertable {
     id?: number | Parameter<number> | DefaultType | SQLFragment;
-    structuredDocument?: PgDomainMySpecialJsonb | Parameter<PgDomainMySpecialJsonb> | null | DefaultType | SQLFragment;
-    location?: PgTypeGeometry | Parameter<PgTypeGeometry> | null | DefaultType | SQLFragment;
-    otherLocation?: PgDomainMySpecialGeometry | Parameter<PgDomainMySpecialGeometry> | null | DefaultType | SQLFragment;
-    furtherLocations?: PgType_mySpecialGeometry | Parameter<PgType_mySpecialGeometry> | null | DefaultType | SQLFragment;
-    name?: PgDomainIllegal_characters_text | Parameter<PgDomainIllegal_characters_text> | null | DefaultType | SQLFragment;
-    blah?: PgDomainContinue | Parameter<PgDomainContinue> | null | DefaultType | SQLFragment;
-    bar?: PgDomainSQL | Parameter<PgDomainSQL> | null | DefaultType | SQLFragment;
+    structuredDocument?: c.PgMySpecialJsonb | Parameter<c.PgMySpecialJsonb> | null | DefaultType | SQLFragment;
+    location?: c.PgGeometry | Parameter<c.PgGeometry> | null | DefaultType | SQLFragment;
+    otherLocation?: c.PgMySpecialGeometry | Parameter<c.PgMySpecialGeometry> | null | DefaultType | SQLFragment;
+    furtherLocations?: c.Pg_mySpecialGeometry | Parameter<c.Pg_mySpecialGeometry> | null | DefaultType | SQLFragment;
+    name?: c.PgIllegal_characters_text | Parameter<c.PgIllegal_characters_text> | null | DefaultType | SQLFragment;
+    blah?: c.PgContinue | Parameter<c.PgContinue> | null | DefaultType | SQLFragment;
+    bar?: c.PgSQL | Parameter<c.PgSQL> | null | DefaultType | SQLFragment;
     numbers?: number[] | Parameter<number[]> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
@@ -276,12 +270,12 @@ export namespace stores {
   export interface Selectable {
     id: number;
     name: string;
-    geom: PgTypeGeometry;
+    geom: c.PgGeometry;
   }
   export interface Insertable {
     id?: number | Parameter<number> | DefaultType | SQLFragment;
     name: string | Parameter<string> | SQLFragment;
-    geom: PgTypeGeometry | Parameter<PgTypeGeometry> | SQLFragment;
+    geom: c.PgGeometry | Parameter<c.PgGeometry> | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
   export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
