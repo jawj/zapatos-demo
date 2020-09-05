@@ -558,6 +558,27 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     console.log(inserted.otherLocation?.type);
   })();
 
+  await (async () => {
+    console.log('\n=== aggregates in select/selectOne ===\n');
+
+    const x = await db.selectOne('books', db.all, {
+      columns: [],
+      extras: { meanTitleChars: db.sql<s.books.SQL, number>`avg(char_length(${"title"}))` },
+    }).run(pool);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== DISTINCT ===\n');
+
+    const
+      x = await db.selectOne('books', db.all, { distinct: true }).run(pool),
+      y = await db.selectOne('books', db.all, { distinct: "title" }).run(pool),
+      z = await db.selectOne('books', db.all, { distinct: ["title", "createdAt"] }).run(pool),
+      a = await db.selectOne('books', db.all, { distinct: db.sql`uppercase(${"title"})` }).run(pool);
+
+  })();
+
   /*
   import * as zu from './zapatos/src/utils';
   
