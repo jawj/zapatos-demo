@@ -575,7 +575,37 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       x = await db.selectOne('books', db.all, { distinct: true }).run(pool),
       y = await db.selectOne('books', db.all, { distinct: "title" }).run(pool),
       z = await db.selectOne('books', db.all, { distinct: ["title", "createdAt"] }).run(pool),
-      a = await db.selectOne('books', db.all, { distinct: db.sql`uppercase(${"title"})` }).run(pool);
+      a = await db.selectOne('books', db.all, { distinct: db.sql`upper(${"title"})` }).run(pool);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== GROUP BY and HAVING ===\n');
+
+    const
+      x = await db.select('books', db.all, {
+        columns: ['authorId'],
+        extras: {
+          longestTitle: db.sql<s.books.SQL, number>`max(char_length(${"title"}))`
+        },
+        groupBy: 'authorId',
+      }).run(pool),
+      y = await db.select('books', db.all, {
+        columns: [],
+        extras: {
+          shortestTitle: db.sql<s.books.SQL, number>`min(char_length(${"title"}))`
+        },
+        groupBy: ['authorId', 'title'],
+        having: { authorId: 1 },
+      }).run(pool),
+      z = await db.select('books', db.all, {
+        columns: [],
+        extras: {
+          shortestTitle: db.sql<s.books.SQL, number>`min(char_length(${"title"}))`
+        },
+        groupBy: db.sql`${"authorId"} + 1`,
+        having: db.sql`true`,
+      }).run(pool);
 
   })();
 
