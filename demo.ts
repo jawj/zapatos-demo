@@ -610,6 +610,15 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   })();
 
   await (async () => {
+    console.log('\n=== IN ===\n');
+
+    const
+      isIn = (a: any[]) => db.sql<db.SQL>`${db.self} IN (${db.vals(a)})`,
+      authorIds = [1, 2],
+      books = await db.select('books', { authorId: isIn(authorIds) }).run(pool);
+  })();
+
+  await (async () => {
     console.log('\n=== WITH TIES ===\n');
 
     const
