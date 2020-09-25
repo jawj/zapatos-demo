@@ -363,7 +363,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
 
     const people = await db.select('employees', db.all, {
       columns: ['name'],
-      order: [{ by: 'name', direction: 'ASC' }],
+      order: { by: 'name', direction: 'ASC' },
       lateral: {
         lineManager: db.selectOne('employees', { id: db.parent('managerId') },
           { alias: 'managers', columns: ['name'] }),
@@ -394,7 +394,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       lateral: {
         alternatives: db.select('stores', db.sql<s.stores.SQL>`${"id"} <> ${db.parent("id")}`, {
           alias: 'nearby',
-          order: [{ by: db.sql<s.stores.SQL>`${"geom"} <-> ${db.parent("geom")}`, direction: 'ASC' }],
+          order: { by: db.sql<s.stores.SQL>`${"geom"} <-> ${db.parent("geom")}`, direction: 'ASC' },
           limit: 3,
           extras: {
             distance: db.sql<s.stores.SQL, number>`ST_Distance(${"geom"}, ${db.parent("geom")})`
@@ -605,6 +605,18 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
         },
         groupBy: db.sql`${"authorId"} + 1`,
         having: db.sql`true`,
+      }).run(pool);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== WITH TIES ===\n');
+
+    const
+      firstAuthorBooks = await db.select('books', db.all, {
+        order: [{ by: 'authorId', direction: 'ASC' }],
+        limit: 1,
+        withTies: true,
       }).run(pool);
 
   })();

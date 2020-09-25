@@ -250,14 +250,15 @@ export interface SelectOptionsForTable<
   L extends SQLFragmentsMap | undefined,
   E extends SQLFragmentsMap | undefined,
   > {
-  distinct?: boolean | ColumnForTable<T> | ColumnForTable<T>[] | SQLForTable<T>;
-  order?: OrderSpecForTable<T>[];
+  distinct?: boolean | ColumnForTable<T> | ColumnForTable<T>[] | SQLFragment<any>;
+  order?: OrderSpecForTable<T> | OrderSpecForTable<T>[];
   limit?: number;
   offset?: number;
+  withTies?: boolean;
   columns?: C;
   extras?: E;
-  groupBy?: ColumnForTable<T> | ColumnForTable<T>[] | SQLForTable<T>;
-  having?: WhereableForTable<T> | SQLForTable<T>;
+  groupBy?: ColumnForTable<T> | ColumnForTable<T>[] | SQLFragment<any>;
+  having?: WhereableForTable<T> | SQLFragment<any>;
   lateral?: L;
   alias?: string;
   lock?: SelectLockingOptions | SelectLockingOptions[];
@@ -365,10 +366,10 @@ export const select: SelectSignatures = function (
     alias = allOptions.alias || table,
     { distinct, groupBy, having, lateral, extras } = allOptions,
     lock = allOptions.lock === undefined || Array.isArray(allOptions.lock) ? allOptions.lock : [allOptions.lock],
+    order = allOptions.order === undefined || Array.isArray(allOptions.order) ? allOptions.order : [allOptions.order],
     tableAliasSQL = alias === table ? [] : sql<string>` AS ${alias}`,
-    distinctSQL = !distinct ? [] : sql` DISTINCT${
-      distinct instanceof SQLFragment || typeof distinct === 'string' ? sql` ON (${distinct})` :
-        Array.isArray(distinct) ? sql` ON (${cols(distinct)})` : []}`,
+    distinctSQL = !distinct ? [] : sql` DISTINCT${distinct instanceof SQLFragment || typeof distinct === 'string' ? sql` ON (${distinct})` :
+      Array.isArray(distinct) ? sql` ON (${cols(distinct)})` : []}`,
     colsSQL = mode === SelectResultMode.Count ?
       (allOptions.columns ? sql`count(${cols(allOptions.columns)})` : sql<typeof alias>`count(${alias}.*)`) :
       allOptions.columns ?
@@ -382,17 +383,17 @@ export const select: SelectSignatures = function (
         Object.keys(extras), sql`, `, k => sql<SQL>`${param(k)}::text, ${extras![k]}`)})`,
     allColsSQL = sql`${colsSQL}${colsLateralSQL}${colsExtraSQL}`,
     whereSQL = where === all ? [] : sql` WHERE ${where}`,
-    groupBySQL = !groupBy ? [] : sql` GROUP BY ${
-      groupBy instanceof SQLFragment || typeof groupBy === 'string' ? groupBy : cols(groupBy)}`,
+    groupBySQL = !groupBy ? [] : sql` GROUP BY ${groupBy instanceof SQLFragment || typeof groupBy === 'string' ? groupBy : cols(groupBy)}`,
     havingSQL = !having ? [] : sql` HAVING ${having}`,
-    orderSQL = !allOptions.order ? [] :
-      sql` ORDER BY ${mapWithSeparator(allOptions.order, sql`, `, o => {
+    orderSQL = order === undefined ? [] :
+      sql` ORDER BY ${mapWithSeparator(order, sql`, `, o => {
         if (!['ASC', 'DESC'].includes(o.direction)) throw new Error(`Direction must be ASC/DESC, not '${o.direction}'`);
         if (o.nulls && !['FIRST', 'LAST'].includes(o.nulls)) throw new Error(`Nulls must be FIRST/LAST/undefined, not '${o.nulls}'`);
         return sql`${o.by} ${raw(o.direction)}${o.nulls ? sql` NULLS ${raw(o.nulls)}` : []}`;
       })}`,
-    limitSQL = allOptions.limit === undefined ? [] : sql` LIMIT ${param(allOptions.limit)}`,
-    offsetSQL = allOptions.offset === undefined ? [] : sql` OFFSET ${param(allOptions.offset)}`,
+    offsetSQL = allOptions.offset === undefined ? [] : sql` OFFSET ${param(allOptions.offset)} ROWS`,
+    limitSQL = allOptions.limit === undefined ? [] :
+      sql<SQL>` FETCH FIRST ${param(allOptions.limit)} ROWS ${allOptions.withTies ? sql`WITH TIES` : sql`ONLY`}`,
     lockSQL = lock === undefined ? [] : lock.map(lock => {
       const
         ofTables = lock.of === undefined || Array.isArray(lock.of) ? lock.of : [lock.of],
@@ -407,7 +408,7 @@ export const select: SelectSignatures = function (
       });
 
   const
-    rowsQuery = sql<SQL, any>`SELECT${distinctSQL} ${allColsSQL} AS result FROM ${table}${tableAliasSQL}${lateralSQL}${whereSQL}${groupBySQL}${havingSQL}${orderSQL}${limitSQL}${offsetSQL}${lockSQL}`,
+    rowsQuery = sql<SQL, any>`SELECT${distinctSQL} ${allColsSQL} AS result FROM ${table}${tableAliasSQL}${lateralSQL}${whereSQL}${groupBySQL}${havingSQL}${orderSQL}${offsetSQL}${limitSQL}${lockSQL}`,
     query = mode !== SelectResultMode.Many ? rowsQuery :
       // we need the aggregate to sit in a sub-SELECT in order to keep ORDER and LIMIT working as usual
       sql<SQL, any>`SELECT coalesce(jsonb_agg(result), '[]') AS result FROM (${rowsQuery}) AS ${raw(`"sq_${alias}"`)}`;
