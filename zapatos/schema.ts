@@ -19,7 +19,12 @@ import type {
   Parameter,
   ParentColumn,
   DefaultType,
+  Condition,
 } from './src/core';
+
+type BasicWhereableFromInsertable<T> = { [K in keyof T]: Exclude<T[K] | ParentColumn, null | DefaultType> };
+type WhereableFromBasicWhereable<T> = { [K in keyof T]?: T[K] | Condition<T[K]> };
+type WhereableFromInsertable<T> = WhereableFromBasicWhereable<BasicWhereableFromInsertable<T>>;
 
 import * as c from './custom';
 
@@ -42,7 +47,7 @@ export declare namespace tableInOtherSchema {
     details?: string | Parameter<string> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -82,7 +87,7 @@ export declare namespace appleTransactions {
     latestReceiptData?: string | Parameter<string> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -108,7 +113,7 @@ export declare namespace authors {
     isLiving?: boolean | Parameter<boolean> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -138,7 +143,7 @@ export declare namespace books {
     updatedAt?: Date | Parameter<Date> | DateString | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -176,7 +181,7 @@ export declare namespace customTypes {
     numbers?: number[] | Parameter<number[]> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -202,7 +207,7 @@ export declare namespace emailAuthentication {
     lastFailedLogin?: Date | Parameter<Date> | DateString | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -228,7 +233,7 @@ export declare namespace employees {
     managerId?: number | Parameter<number> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -252,7 +257,7 @@ export declare namespace identityTest {
     data?: string | Parameter<string> | null | DefaultType | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -278,7 +283,7 @@ export declare namespace stores {
     geom: c.PgGeometry | Parameter<c.PgGeometry> | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :
@@ -302,7 +307,7 @@ export declare namespace tags {
     bookId: number | Parameter<number> | SQLFragment;
   }
   export interface Updatable extends Partial<Insertable> { }
-  export type Whereable = { [K in keyof Insertable]?: Exclude<Insertable[K] | ParentColumn, null | DefaultType> };
+  export interface Whereable extends WhereableFromInsertable<Insertable> { }
   export type JSONSelectable = { [K in keyof Selectable]:
     Date extends Selectable[K] ? Exclude<Selectable[K], Date> | DateString :
     Date[] extends Selectable[K] ? Exclude<Selectable[K], Date[]> | DateString[] :

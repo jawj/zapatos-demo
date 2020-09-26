@@ -3,6 +3,7 @@
 import * as pg from 'pg';
 import * as db from './zapatos/src';
 import * as s from './zapatos/schema';
+import { isNotNull } from './zapatos/src';
 
 db.setConfig({
   queryListener: console.log,
@@ -616,6 +617,12 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       isIn = (a: any[]) => db.sql<db.SQL>`${db.self} IN (${db.vals(a)})`,
       authorIds = [1, 2],
       books = await db.select('books', { authorId: isIn(authorIds) }).run(pool);
+
+    const moreBooks = await db.select('books', {
+      authorId: db.isIn(authorIds),
+      title: db.ne('x'),
+      updatedAt: db.isNotNull,
+    }).run(pool);
   })();
 
   await (async () => {
