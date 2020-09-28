@@ -19,11 +19,10 @@ import type {
   Parameter,
   ParentColumn,
   DefaultType,
-  Condition,
 } from './src/core';
 
 type BasicWhereableFromInsertable<T> = { [K in keyof T]: Exclude<T[K] | ParentColumn, null | DefaultType> };
-type WhereableFromBasicWhereable<T> = { [K in keyof T]?: T[K] | Condition<T[K]> };
+type WhereableFromBasicWhereable<T> = { [K in keyof T]?: T[K] | SQLFragment<any, T[K]> };
 type WhereableFromInsertable<T> = WhereableFromBasicWhereable<BasicWhereableFromInsertable<T>>;
 
 import * as c from './custom';

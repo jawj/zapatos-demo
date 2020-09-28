@@ -615,12 +615,14 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
 
     const
       isIn = (a: any[]) => db.sql<db.SQL>`${db.self} IN (${db.vals(a)})`,
-      authorIds = [1, 2],
+      authorIds = [1, 2, db.sql`3`],
       books = await db.select('books', { authorId: isIn(authorIds) }).run(pool);
 
     const moreBooks = await db.select('books', {
-      authorId: db.isIn(authorIds),
+      authorId: db.or(db.isNotIn(authorIds), db.isIn(authorIds)),
+      id: db.gtAndLte(0, 1000),
       title: db.ne('x'),
+      createdAt: db.lt(db.sql`NOW()`),
       updatedAt: db.isNotNull,
     }).run(pool);
   })();
