@@ -2,8 +2,8 @@
 
 import * as pg from 'pg';
 import * as db from './zapatos/src';
+import { conditions as dc } from './zapatos/src';
 import * as s from './zapatos/schema';
-import { isNotNull } from './zapatos/src';
 
 db.setConfig({
   queryListener: console.log,
@@ -405,7 +405,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     }).run(pool);
 
     console.log(localStore);
-    console.log(localStore?.alternatives.map(s => s.geom.type));
+    console.log(localStore?.alternatives.map(s => [s.geom.type, s.distance]));
   })();
 
 
@@ -456,7 +456,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     console.log(bookDatedByConvertedDate);
 
     // but this works
-    const bookDatedByTruncDate = await db.selectOne('books', { createdAt: db.sql<db.SQL>`date_trunc('milliseconds', ${db.self}) = ${db.param(someActualDate)}` }).run(pool);
+    const bookDatedByTruncDate = await db.selectOne('books', { createdAt: db.sql`date_trunc('milliseconds', ${db.self}) = ${db.param(someActualDate)}` }).run(pool);
     console.log(bookDatedByTruncDate);
 
     // and this also works, more sanely
@@ -499,7 +499,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     console.log('\n=== IN queries with vals ===\n');
     const
       ids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
-      authors = await db.select("authors", { id: db.sql<db.SQL>`${db.self} IN (${db.vals(ids)})` }).run(pool);
+      authors = await db.select("authors", { id: db.sql`${db.self} IN (${db.vals(ids)})` }).run(pool);
   })();
 
   await (async () => {
@@ -614,16 +614,20 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     console.log('\n=== IN ===\n');
 
     const
-      isIn = (a: any[]) => db.sql<db.SQL>`${db.self} IN (${db.vals(a)})`,
+      isIn = (a: any[]) => db.sql`${db.self} IN (${db.vals(a)})`,
       authorIds = [1, 2, db.sql`3`],
       books = await db.select('books', { authorId: isIn(authorIds) }).run(pool);
 
     const moreBooks = await db.select('books', {
-      authorId: db.or(db.isNotIn(authorIds), db.isIn(authorIds)),
-      id: db.gtAndLte(0, 1000),
-      title: db.ne('x'),
-      createdAt: db.lt(db.sql`NOW()`),
-      updatedAt: db.isNotNull,
+      authorId: dc.or(dc.isNotIn(authorIds), dc.isIn(authorIds)),  // yeah, all of them!
+      id: dc.and(dc.gt(0), dc.lte(1000)),
+      title: dc.ne('x'),
+      createdAt: dc.lt(db.sql`NOW()`),
+      updatedAt: dc.isNotNull,
+    }).run(pool);
+
+    const yetMoreBooks = await db.select('books', {
+      title: dc.ilike('One%')
     }).run(pool);
   })();
 

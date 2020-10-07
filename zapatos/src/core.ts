@@ -9,7 +9,7 @@ Released under the MIT licence: see LICENCE file
 
 import type * as pg from 'pg';
 import { getConfig } from './config';
-import { isPOJO, mapWithSeparator } from './utils';
+import { isPOJO, NoInfer } from './utils';
 
 import type {
   Updatable,
@@ -149,8 +149,7 @@ export function sql<
   Interpolations = SQL,
   RunResult = pg.QueryResult['rows'],
   Constraint = never,
-  InferredInterpolations extends Interpolations = Interpolations
->(literals: TemplateStringsArray, ...expressions: InferredInterpolations[]) {
+  >(literals: TemplateStringsArray, ...expressions: NoInfer<Interpolations>[]) {
   return new SQLFragment<RunResult, Constraint>(Array.prototype.slice.apply(literals), expressions);
 }
 
@@ -170,7 +169,7 @@ export class SQLFragment<RunResult = pg.QueryResult['rows'], Constraint = never>
   noop = false;  // if true, bypass actually running the query unless forced to e.g. for empty INSERTs
   noopResult: any;  // if noop is true and DB is bypassed, what should be returned?
 
-  constructor(private literals: string[], private expressions: SQLExpression[]) { }
+  constructor(private literals: string[], private expressions: SQL[]) { }
 
   /**
    * Compile and run this query using the provided database connection. What's returned 
@@ -343,46 +342,3 @@ export class SQLFragment<RunResult = pg.QueryResult['rows'], Constraint = never>
     }
   };
 }
-
-
-// === Whereable helpers ===
-
-const conditionalParam = (a: any) => a instanceof SQLFragment || a instanceof ParentColumn || a instanceof Parameter ? a : param(a);
-
-export const isNull = sql<SQL, boolean>`${self} IS NULL`;
-export const isNotNull = sql<SQL, boolean>`${self} IS NOT NULL`;
-export const isTrue = sql<SQL, boolean>`${self} IS TRUE`;
-export const isNotTrue = sql<SQL, boolean>`${self} IS NOT TRUE`;
-export const isFalse = sql<SQL, boolean>`${self} IS FALSE`;
-export const isNotFalse = sql<SQL, boolean>`${self} IS NOT FALSE`;
-export const isUnknown = sql<SQL, boolean>`${self} IS UNKNOWN`;
-export const isNotUnknown = sql<SQL, boolean>`${self} IS NOT UNKNOWN`;
-
-export const isDistinctFrom = <T>(a: T) => sql<SQL, boolean, T>`${self} IS DISTINCT FROM ${conditionalParam(a)}`;
-export const isNotDistinctFrom = <T>(a: T) => sql<SQL, boolean, T>`${self} IS NOT DISTINCT FROM ${conditionalParam(a)}`;
-
-export const ne = <T>(a: T) => sql<SQL, boolean | null, T>`${self} <> ${conditionalParam(a)}`;
-export const gt = <T>(a: T) => sql<SQL, boolean | null, T>`${self} > ${conditionalParam(a)}`;
-export const gte = <T>(a: T) => sql<SQL, boolean | null, T>`${self} >= ${conditionalParam(a)}`;
-export const lt = <T>(a: T) => sql<SQL, boolean | null, T>`${self} < ${conditionalParam(a)}`;
-export const lte = <T>(a: T) => sql<SQL, boolean | null, T>`${self} <= ${conditionalParam(a)}`;
-
-export const gtAndLt = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} > ${conditionalParam(a)} AND ${self} < ${conditionalParam(b)}`;
-export const gtAndLte = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} > ${conditionalParam(a)} AND ${self} <= ${conditionalParam(b)}`;
-export const gteAndLt = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} >= ${conditionalParam(a)} AND ${self} < ${conditionalParam(b)}`;
-export const gteAndLte = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} >= ${conditionalParam(a)} AND ${self} <= ${conditionalParam(b)}`;  // same as between
-export const ltOrGt = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} < ${conditionalParam(a)} OR ${self} > ${conditionalParam(b)}`;
-export const lteOrGt = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} <= ${conditionalParam(a)} OR ${self} > ${conditionalParam(b)}`;
-export const ltOrGte = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} < ${conditionalParam(a)} OR ${self} >= ${conditionalParam(b)}`;
-export const lteOrGte = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} <= ${conditionalParam(a)} OR ${self} >= ${conditionalParam(b)}`;  // same as notBetween
-export const between = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} BETWEEN (${conditionalParam(a)}) AND (${conditionalParam(b)})`;
-export const betweenSymmetric = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} BETWEEN SYMMETRIC (${conditionalParam(a)}) AND (${conditionalParam(b)})`;
-export const notBetween = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} NOT BETWEEN (${conditionalParam(a)}) AND (${conditionalParam(b)})`;
-export const notBetweenSymmetric = <T>(a: T, b: T) => sql<SQL, boolean | null, T>`${self} NOT BETWEEN SYMMETRIC (${conditionalParam(a)}) AND (${conditionalParam(b)})`;
-
-export const isIn = <T>(a: T[]) => sql<SQL, boolean | null, T>`${self} IN (${vals(a)})`;
-export const isNotIn = <T>(a: T[]) => sql<SQL, boolean | null, T>`${self} NOT IN (${vals(a)})`;
-
-export const or = <T>(...conditions: SQLFragment<any, T>[]) => sql<SQL, boolean | null, T>`${mapWithSeparator(conditions, sql` OR `, c => sql`(${c})`)}`;
-export const and = <T>(...conditions: SQLFragment<any, T>[]) => sql<SQL, boolean | null, T>`${mapWithSeparator(conditions, sql` AND `, c => sql`(${c})`)}`;
-export const not = <T>(condition: SQLFragment<any, T>) => sql<SQL, boolean | null, T>`NOT ${condition}`;
