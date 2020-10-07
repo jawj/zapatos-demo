@@ -374,6 +374,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     }).run(pool);
 
     console.dir(people, { depth: null });
+    void charlie, dougal;  // no warnings, please
   })();
 
   await (async () => {
@@ -493,6 +494,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       baseQuery = db.selectOne("authors", { id: 123 }),
       lockingQuery = db.sql<db.SQL, ReturnType<typeof baseQuery.run>>`${baseQuery} FOR UPDATE`,
       result = await lockingQuery.run(pool);
+
+    void result;  // no warnings, please
   })();
 
   await (async () => {
@@ -500,6 +503,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     const
       ids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
       authors = await db.select("authors", { id: db.sql`${db.self} IN (${db.vals(ids)})` }).run(pool);
+
+    void authors;  // no warnings, please
   })();
 
   await (async () => {
@@ -516,6 +521,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       }).compile();
 
     console.log(authors3);
+    void authors1, authors2;  // no warnings, please
   })();
 
   await (async () => {
@@ -525,6 +531,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       forcedNothing = await db.insert("authors", []).run(pool, true),
       upsertNothing = await db.upsert("authors", [], "id").run(pool),
       forcedUpsertNothing = await db.upsert("authors", [], "id").run(pool, true);
+
+    void nothing, forcedNothing, upsertNothing, forcedUpsertNothing;  // no warnings, please
   })();
 
   await (async () => {
@@ -544,6 +552,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
         extras: { idPlusPlus: db.sql<db.SQL, number>`${"id"} + 1` },
         lateral: { books: db.select("books", { authorId: db.parent("id") }) },
       }).run(pool);
+
+    void noCols, noColsExtras, noColsLateral, noColsExtrasLateral;  // no warnings, please
   })();
 
   await (async () => {
@@ -567,6 +577,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       extras: { meanTitleChars: db.sql<s.books.SQL, number>`avg(char_length(${"title"}))` },
     }).run(pool);
 
+    void x;  // no warnings, please
   })();
 
   await (async () => {
@@ -578,6 +589,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       z = await db.selectOne('books', db.all, { distinct: ["title", "createdAt"] }).run(pool),
       a = await db.selectOne('books', db.all, { distinct: db.sql`upper(${"title"})` }).run(pool);
 
+    void x, y, z, a;  // no warnings, please
   })();
 
   await (async () => {
@@ -608,6 +620,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
         having: db.sql`true`,
       }).run(pool);
 
+    void x, y, z;  // no warnings, please
   })();
 
   await (async () => {
@@ -629,6 +642,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     const yetMoreBooks = await db.select('books', {
       title: dc.ilike('One%')
     }).run(pool);
+
+    void books, moreBooks, yetMoreBooks;  // no warnings, please
   })();
 
   await (async () => {
@@ -641,6 +656,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
         withTies: true,
       }).run(pool);
 
+    void firstAuthorBooks;  // no warnings, please
   })();
 
   /*
