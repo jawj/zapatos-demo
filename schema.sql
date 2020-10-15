@@ -53,6 +53,11 @@ CREATE TABLE "employees"
 , "managerId" INTEGER REFERENCES "employees"("id")
 );
 
+CREATE TABLE "bankAccounts" 
+( "id" SERIAL PRIMARY KEY
+, "balance" INTEGER NOT NULL DEFAULT 0 CHECK ("balance" > 0) 
+);
+
 CREATE EXTENSION postgis;
 CREATE TABLE "stores"
 ( "id" SERIAL PRIMARY KEY

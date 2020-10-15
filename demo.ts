@@ -18,7 +18,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "books", "customTypes", "emailAuthentication", "employees", "identityTest", "stores", "tableInOtherSchema", "tags"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "customTypes", "emailAuthentication", "employees", "identityTest", "stores", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -469,7 +469,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     console.log('\n=== Transaction ===\n');
     const
       email = "me@privacy.net",
-      result = await db.transaction(pool, db.Isolation.Serializable, async txnClient => {
+      result = await db.transaction(pool, db.IsolationLevel.Serializable, async txnClient => {
 
         const emailAuth = await db.selectOne("emailAuthentication", { email }).run(txnClient);
 
@@ -647,6 +647,41 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   })();
 
   await (async () => {
+    console.log('\n=== Composable transactions ===\n');
+
+    const [accountA, accountB, accountC] = await db.insert('bankAccounts',
+      [{ balance: 50 }, { balance: 50 }, { balance: 50 }]).run(pool);
+
+    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrPool: db.TxnClientForSerializable | pg.Pool) =>
+      db.serializable(txnClientOrPool, txnClient => Promise.all([
+        db.update('bankAccounts',
+          { balance: db.sql`${db.self} - ${db.param(amount)}` },
+          { id: sendingAccountId }).run(txnClient),
+        db.update('bankAccounts',
+          { balance: db.sql`${db.self} + ${db.param(amount)}` },
+          { id: receivingAccountId }).run(txnClient),
+      ]));
+
+    try {
+      await transferMoney(accountA.id, accountB.id, 60, pool);
+
+    } catch (err) {
+      console.log(err.message, '/', err.detail);
+    }
+
+    try {
+      await db.serializable(pool, txnClient => Promise.all([
+        transferMoney(accountA.id, accountB.id, 40, txnClient),
+        transferMoney(accountA.id, accountC.id, 40, txnClient)
+      ]));
+
+    } catch (err) {
+      console.log(err.message, '/', err.detail);
+    }
+
+  })();
+
+  await (async () => {
     console.log('\n=== WITH TIES ===\n');
 
     const
@@ -661,21 +696,21 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
 
   /*
   import * as zu from './zapatos/src/utils';
-  
+   
   // ...
-
+  
   await (async () => {
     console.log('\n=== multiVals ===\n');
-
+  
     // turns out it's hard to make this work well without recreating the whole insert shortcut
-
+  
     const multiVals = (insertables: s.Insertable[]) =>
       zu.mapWithSeparator(
         zu.completeKeysWithDefault(insertables),
         db.sql`, `,
         v => db.sql`(${db.vals(v)})`,
       );
-
+  
     const authorData: s.authors.Insertable[] = [
       { name: 'William Shakespeare' },
       { name: 'Christopher Marlowe', isLiving: false },
@@ -683,7 +718,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     await db.sql`
       INSERT INTO ${"authors"} (${db.cols(authorData)}) 
       VALUES ${multiVals(authorData)}`.run(pool);
-
+  
   })();
   */
 
