@@ -624,7 +624,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   })();
 
   await (async () => {
-    console.log('\n=== IN ===\n');
+    console.log('\n=== Conditions ===\n');
 
     const
       isIn = (a: any[]) => db.sql`${db.self} IN (${db.vals(a)})`,
@@ -643,7 +643,11 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       title: dc.ilike('One%')
     }).run(pool);
 
-    void books, moreBooks, yetMoreBooks;  // no warnings, please
+    const andYetMoreBooks = await db.select('books', {
+      title: dc.isIn([])
+    }).run(pool);
+
+    void books, moreBooks, yetMoreBooks, andYetMoreBooks;  // no warnings, please
   })();
 
   await (async () => {
@@ -652,7 +656,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
     const [accountA, accountB, accountC] = await db.insert('bankAccounts',
       [{ balance: 50 }, { balance: 50 }, { balance: 50 }]).run(pool);
 
-    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrPool: db.TxnClientForSerializable | pg.Pool) =>
+    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrPool: pg.Pool | db.TxnClientForSerializable) =>
       db.serializable(txnClientOrPool, txnClient => Promise.all([
         db.update('bankAccounts',
           { balance: db.sql`${db.self} - ${db.param(amount)}` },
