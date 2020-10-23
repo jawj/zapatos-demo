@@ -12,7 +12,7 @@ db.setConfig({
   castArrayParamsToJson: true,
   castObjectParamsToJson: true,
 });
-const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapatos_demo' });
+const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapatos_demo' });
 
 (async () => {
   await (async () => {
@@ -647,6 +647,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
       title: dc.isIn([])
     }).run(pool);
 
+    await db.update('emailAuthentication', { consecutiveFailedLogins: dc.add(1) }, { email: 'me@privacy.net' }).run(pool);
+
     void books, moreBooks, yetMoreBooks, andYetMoreBooks;  // no warnings, please
   })();
 
@@ -686,7 +688,87 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5433/zapato
   })();
 
   await (async () => {
-    console.log('\n=== WITH TIES ===\n');
+    console.log('\n=== RETURNING options ===\n');
+
+    const book = await db.insert('books',
+      { authorId: 1, title: 'Something very, very long (Volume I)' },
+    ).run(pool);
+
+    const { id } = await db.insert('books',
+      { authorId: 1, title: 'Something very, very long (Volume II)' },
+      { returning: ['id'] }
+    ).run(pool);
+
+    const nothing = await db.insert('books',
+      { authorId: 1, title: 'Something very, very long (Volume III)' },
+      { returning: [] }
+    ).run(pool);
+
+    const upperTitle = await db.insert('books',
+      { authorId: 1, title: 'something originally lowercase' },
+      { returning: [], extras: { upperTitle: db.sql<s.books.SQL, string>`upper(${"title"})` } }
+    ).run(pool);
+
+    const lowerTitles = await db.insert('books', [
+      { authorId: 1, title: 'Case' },
+      { authorId: 1, title: 'Sensitive' },
+    ], { returning: ['id'], extras: { lowerTitle: db.sql<s.books.SQL, string>`lower(${"title"})` } }
+    ).run(pool);
+
+    void book, id, nothing, upperTitle, lowerTitles;
+
+    const
+      newTransaction: s.appleTransactions.Insertable = {
+        environment: 'PROD',
+        originalTransactionId: '123456',
+        accountId: 123,
+        latestReceiptData: "TWFuIGlzIGRpc3Rp",
+      },
+      otherNewTransaction = { ...newTransaction, ...{ originalTransactionId: '789' } },
+      emptyResults = await db.upsert("appleTransactions", [newTransaction, otherNewTransaction],
+        ["environment", "originalTransactionId"], { returning: [] }).run(pool),
+      extraResult = await db.upsert("appleTransactions", newTransaction,
+        ["environment", "originalTransactionId"], { returning: [], extras: { accX10: db.sql`${"accountId"} * 10` } }).run(pool),
+      minimalResult = await db.upsert("appleTransactions", newTransaction,
+        db.constraint('appleTransPKey'), { returning: ['originalTransactionId'] }).run(pool),
+      fullResult = await db.upsert("appleTransactions", newTransaction,
+        ["environment", "originalTransactionId"]).run(pool);
+
+    void emptyResults, extraResult, minimalResult, fullResult;
+
+    const updatedBookIds = await db.update('books',
+      { updatedAt: new Date() },
+      { authorId: 1 },
+      { returning: ['id'], extras: { one: db.sql`1` } }).run(pool);
+
+    const noBookData = await db.update('books',
+      { updatedAt: new Date() },
+      { authorId: 1 },
+      { returning: [] }).run(pool);
+
+    const extraBookData = await db.update('books',
+      { updatedAt: new Date() },
+      { authorId: 1 },
+      { extras: { upperTitle: db.sql<db.SQL, string>`upper(${"title"})` } }).run(pool);
+
+    void updatedBookIds, noBookData, extraBookData;
+
+    const deletedTrans = await db.deletes('appleTransactions', {
+      originalTransactionId: minimalResult.originalTransactionId
+    }, {
+      returning: ['accountId'],
+      extras: { halfAccountId: db.sql<db.SQL, Date>`${"accountId"} / 2` }
+    }).run(pool);
+
+    const nothingAndNoColumn = await db.deletes('appleTransactions',
+      { originalTransactionId: minimalResult.originalTransactionId },
+      { returning: [] }).run(pool);
+
+    void deletedTrans[0], nothingAndNoColumn;
+  })();
+
+  await (async () => {
+    console.log('\n=== WITH TIES (requires Postgres 13+) ===\n');
 
     const
       firstAuthorBooks = await db.select('books', db.all, {
