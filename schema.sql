@@ -70,6 +70,7 @@ CREATE INDEX "storesGeomIdx" ON "stores" USING gist("geom");
 CREATE DOMAIN "mySpecialJsonb" AS jsonb;
 CREATE DOMAIN "mySpecialGeometry" AS geometry;
 CREATE DOMAIN "illegal/characters.text" AS text;
+CREATE DOMAIN "snake_cased_typename" AS text;
 CREATE DOMAIN "continue" AS real;
 CREATE DOMAIN "SQL" AS text;
 
@@ -80,6 +81,7 @@ CREATE TABLE "customTypes"
 , "otherLocation" "mySpecialGeometry"
 , "furtherLocations" "mySpecialGeometry"[]
 , "name" "illegal/characters.text"
+, "alsoName" "snake_cased_typename",
 , "blah" "continue"  -- JS/TS reserved word
 , "bar" "SQL" -- Zapatos object name clash
 , "numbers" real[]

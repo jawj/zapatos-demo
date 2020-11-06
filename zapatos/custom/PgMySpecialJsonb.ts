@@ -3,6 +3,6 @@
 It's a placeholder for a custom type definition
 */
 
-import type { JSONValue } from '../src/core';
+import type * as db from '../src/core';
 
-export type PgMySpecialJsonb = JSONValue;  // replace with your custom type or interface as desired
+export type PgMySpecialJsonb = db.JSONValue;  // replace with your custom type or interface as desired
