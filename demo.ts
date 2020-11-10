@@ -1,9 +1,9 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env ts-node --files
 
 import * as pg from 'pg';
-import * as db from './zapatos/src';
-import { conditions as dc } from './zapatos/src';
-import * as s from './zapatos/schema';
+import * as db from 'zapatos';
+import { conditions as dc } from 'zapatos';
+import type * as s from 'zapatos/schema';
 
 db.setConfig({
   queryListener: console.log,
@@ -12,6 +12,7 @@ db.setConfig({
   castArrayParamsToJson: true,
   castObjectParamsToJson: true,
 });
+
 const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapatos_demo' });
 
 (async () => {
