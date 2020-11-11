@@ -8,8 +8,12 @@ Released under the MIT licence: see LICENCE file
 */
 
 declare module 'zapatos/schema' {
-  import * as db from 'zapatos';
-  import * as c from 'zapatos/custom';
+
+  import type * as db from 'zapatos';
+  import type * as c from 'zapatos/custom';
+
+  // got a type error on schemaVersionCanary below? update by running `npx zapatos`
+  export interface schemaVersionCanary extends db.SchemaVersionCanary { version: 'a' }
 
   type BasicWhereableFromInsertable<T> = { [K in keyof T]: Exclude<T[K] | db.ParentColumn, null | db.DefaultType> };
   type WhereableFromBasicWhereable<T> = { [K in keyof T]?: T[K] | db.SQLFragment<any, T[K]> };
@@ -406,5 +410,4 @@ declare module 'zapatos/schema' {
     tags: tags.SQL;
   }[T];
 
-
-} // end declare module
+}
