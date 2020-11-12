@@ -9,7 +9,7 @@ Released under the MIT licence: see LICENCE file
 
 declare module 'zapatos/schema' {
 
-  import type * as db from 'zapatos';
+  import type * as db from 'zapatos/db';
   import type * as c from 'zapatos/custom';
 
   // got a type error on schemaVersionCanary below? update by running `npx zapatos`

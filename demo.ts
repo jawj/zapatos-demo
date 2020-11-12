@@ -1,8 +1,8 @@
 #!/usr/bin/env ts-node --files
 
 import * as pg from 'pg';
-import * as db from 'zapatos';
-import { conditions as dc } from 'zapatos';
+import * as db from 'zapatos/db';
+import { conditions as dc } from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 
 db.setConfig({
