@@ -4,6 +4,7 @@ import * as pg from 'pg';
 import * as db from 'zapatos/db';
 import { conditions as dc } from 'zapatos/db';
 import type * as s from 'zapatos/schema';
+import type * as c from 'zapatos/custom';
 
 db.setConfig({
   queryListener: console.log,
@@ -559,13 +560,15 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
 
   await (async () => {
     console.log('\n=== geometry and CASTs ===\n');
-    const inserted = await db.insert("customTypes", {
-      structuredDocument: [1, 2, 3],
-      location: { type: 'Point', coordinates: [1, 2] },
-      otherLocation: db.param({ type: 'LineString', coordinates: [[1, 2], [3, 4]] }, true),
-      bar: '12',
-      numbers: db.param([1, 2, 3], false),
-    }).run(pool);
+    const
+      pointLocation: c.PgGeometry = { type: 'Point', coordinates: [1, 2] },
+      inserted = await db.insert("customTypes", {
+        structuredDocument: [1, 2, 3],
+        location: pointLocation,
+        otherLocation: db.param({ type: 'LineString', coordinates: [[1, 2], [3, 4]] }, true),
+        bar: '12',
+        numbers: db.param([1, 2, 3], false),
+      }).run(pool);
 
     console.log(inserted.otherLocation?.type);
   })();
