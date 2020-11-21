@@ -20,7 +20,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "customTypes", "emailAuthentication", "employees", "identityTest", "stores", "tableInOtherSchema", "tags"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "customTypes", "dimensions", "emailAuthentication", "employees", "identityTest", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -784,23 +784,124 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     void firstAuthorBooks;  // no warnings, please
   })();
 
+  await (async () => {
+    console.log('\n=== undefined in Whereables ===\n');
+
+    await db.select('authors', {}).run(pool);  // {} is treated as TRUE
+    await db.select('authors', { name: undefined }).run(pool);  // this would ideally be a type error
+
+  })();
+
+  await (async () => {
+    console.log('\n=== Many-to-many join ===\n');
+
+    const
+      [fg, jos, epc] = await db.insert('products', [
+        { productName: 'Flushed grollings' },
+        { productName: 'Jigged olive-spantles' },
+        { productName: 'Embarrassed parping couplets' },
+      ]).run(pool),
+      savedOrder = await db.insert('orders', { userEmail: 'stephen@privacy.net' }).run(pool);
+
+    await db.insert('orderProducts', [
+      { orderId: savedOrder.id, productId: fg.id },
+      { orderId: savedOrder.id, productId: jos.id },
+      { orderId: savedOrder.id, productId: epc.id },
+    ]).run(pool);
+
+    const order1 = await db.selectOne('orders', { id: savedOrder.id }, {
+      lateral: {
+        orderProducts: db.select('orderProducts', { orderId: db.parent('id') }, {
+          lateral: {
+            product: db.selectExactlyOne('products', { id: db.parent('productId') })
+          }
+        })
+      }
+    }).run(pool);
+
+    if (order1) console.log(`For ${order1.userEmail}:\n${order1.orderProducts.map(op => `- ${op.product.productName}`).join('\n')}`);
+
+    const order2 = await db.selectOne('orders', { id: savedOrder.id }, {
+      lateral: {
+        products: db.select('orderProducts', { orderId: db.parent('id') }, {
+          lateral: db.selectExactlyOne('products', { id: db.parent('productId') })
+        })
+      }
+    }).run(pool);
+
+    void order2;
+    if (order2) console.log(`For ${order2.userEmail}:\n${order2.products.map(op => `- ${op.productName}`).join('\n')}`);
+
+
+    const
+      [alice, bobby, cathy] = await db.insert('subjects', [
+        { name: 'Alice' }, { name: 'Bobby' }, { name: 'Cathy' },
+      ]).run(pool),
+      [photo1, photo2, photo3] = await db.insert('photos', [
+        { url: 'http://example.com/photos/photo1.jpg' },
+        { url: 'http://example.com/photos/photo2.jpg' },
+        { url: 'http://example.com/photos/photo3.jpg' },
+      ]).run(pool);
+
+    await db.insert('subjectPhotos', [
+      { subjectId: alice.subjectId, photoId: photo1.photoId },
+      { subjectId: alice.subjectId, photoId: photo2.photoId },
+      { subjectId: bobby.subjectId, photoId: photo2.photoId },
+      { subjectId: cathy.subjectId, photoId: photo1.photoId },
+      { subjectId: cathy.subjectId, photoId: photo3.photoId },
+    ]).run(pool);
+
+    const photos = await db.select('photos', db.all, {
+      lateral: {
+        subjects: db.select('subjectPhotos', { photoId: db.parent('photoId') }, {
+          lateral: db.selectExactlyOne('subjects', { subjectId: db.parent('subjectId') })
+        })
+      }
+    }).run(pool);
+
+    void photos;
+
+  })();
+
+  await (async () => {
+    console.log('\n=== triggers and generated ===\n');
+
+    await db.insert('dimensions', { millimetres: 100 }).run(pool);
+
+    await db.insert('dimensions', {
+      millimetres: 100,
+      // metres: 0.2,  // (wrong and) gets overridden by trigger -- now disallowed
+    }).run(pool);
+
+    await db.insert('dimensions', {
+      millimetres: 100,
+      default_id: 100,  // allowed
+      // always_id: 100,  // not allowed, is now a type error
+    }).run(pool);
+
+    await db.insert('dimensions', {
+      millimetres: 100,
+      // inches: 1,  // (wrong and) not allowed, is now a type error
+    }).run(pool);
+  })();
+
   /*
   import * as zu from './zapatos/src/utils';
    
   // ...
-  
+   
   await (async () => {
     console.log('\n=== multiVals ===\n');
-  
+   
     // turns out it's hard to make this work well without recreating the whole insert shortcut
-  
+   
     const multiVals = (insertables: s.Insertable[]) =>
       zu.mapWithSeparator(
         zu.completeKeysWithDefault(insertables),
         db.sql`, `,
         v => db.sql`(${db.vals(v)})`,
       );
-  
+   
     const authorData: s.authors.Insertable[] = [
       { name: 'William Shakespeare' },
       { name: 'Christopher Marlowe', isLiving: false },
@@ -808,7 +909,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     await db.sql`
       INSERT INTO ${"authors"} (${db.cols(authorData)}) 
       VALUES ${multiVals(authorData)}`.run(pool);
-  
+   
   })();
   */
 

@@ -17,5 +17,13 @@
       "include": "*",
       "exclude": []
     }
+  },
+  "columnOptions": {
+    "dimensions": {
+      "metres": {
+        "insert": "disabled",
+        "update": "disabled"
+      }
+    }
   }
 }
