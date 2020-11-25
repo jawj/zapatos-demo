@@ -21,8 +21,8 @@
   "columnOptions": {
     "dimensions": {
       "metres": {
-        "insert": "disabled",
-        "update": "disabled"
+        "insert": "excluded",
+        "update": "excluded"
       }
     }
   }

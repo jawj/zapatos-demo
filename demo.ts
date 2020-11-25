@@ -7,8 +7,17 @@ import type * as s from 'zapatos/schema';
 import type * as c from 'zapatos/custom';
 
 db.setConfig({
-  queryListener: console.log,
-  resultListener: (x) => console.dir(x, { depth: null }),
+  queryListener: (query, txnId) => {
+    console.log(`Query${txnId ? ` (txn: ${txnId})` : ``}:`);
+    console.log(query.text);
+    if (query.values.length) console.log(query.values);
+    console.log();  // newline
+  },
+  resultListener: (result, txnId, elapsedMs) => {
+    console.log(`Result (${elapsedMs?.toFixed(2)}ms${txnId ? `, txn: ${txnId}` : ``}):`)
+    console.dir(result, { depth: null });
+    console.log();  // newline
+  },
   transactionListener: console.log,
   castArrayParamsToJson: true,
   castObjectParamsToJson: true,
@@ -838,9 +847,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
         { name: 'Alice' }, { name: 'Bobby' }, { name: 'Cathy' },
       ]).run(pool),
       [photo1, photo2, photo3] = await db.insert('photos', [
-        { url: 'http://example.com/photos/photo1.jpg' },
-        { url: 'http://example.com/photos/photo2.jpg' },
-        { url: 'http://example.com/photos/photo3.jpg' },
+        { url: 'photo1.jpg' }, { url: 'photo2.jpg' }, { url: 'photo3.jpg' },
       ]).run(pool);
 
     await db.insert('subjectPhotos', [
