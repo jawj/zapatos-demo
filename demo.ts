@@ -1,24 +1,29 @@
 #!/usr/bin/env ts-node --files
 
 import * as pg from 'pg';
+import * as debug from 'debug';
 import * as db from 'zapatos/db';
 import { conditions as dc } from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import type * as c from 'zapatos/custom';
 
+
+const
+  queryDebug = debug('db:query'),
+  resultDebug = debug('db:result'),
+  txnDebug = debug('db:transaction'),
+  strFromTxnId = (txnId: number | undefined) => txnId === undefined ? '-' : String(txnId);
+
 db.setConfig({
-  queryListener: (query, txnId) => {
-    console.log(`Query${txnId ? ` (txn: ${txnId})` : ``}:`);
-    console.log(query.text);
-    if (query.values.length) console.log(query.values);
-    console.log();  // newline
-  },
-  resultListener: (result, txnId, elapsedMs) => {
-    console.log(`Result (${elapsedMs?.toFixed(2)}ms${txnId ? `, txn: ${txnId}` : ``}):`)
-    console.dir(result, { depth: null });
-    console.log();  // newline
-  },
-  transactionListener: console.log,
+  queryListener: (query, txnId) =>
+    queryDebug(`(%s) %s\n%o`, strFromTxnId(txnId), query.text, query.values),
+  resultListener: (result, txnId, elapsedMs) =>
+    resultDebug(`(%s, %dms) %O`, strFromTxnId(txnId), elapsedMs?.toFixed(1), result),
+  transactionListener: (message, txnId) =>
+    txnDebug(`(%s) %s`, strFromTxnId(txnId), message),
+});
+
+db.setConfig({
   castArrayParamsToJson: true,
   castObjectParamsToJson: true,
 });
@@ -891,6 +896,20 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
       // inches: 1,  // (wrong and) not allowed, is now a type error
     }).run(pool);
   })();
+
+  /*
+  await (async () => {
+    console.log('\n=== CTEs (WITH) ===\n');
+
+    await db.sql`
+      WITH "bookAuthors" as (
+        SELECT ${"books"}.*, to_jsonb(${"authors"}.*) as ${"author"}
+        FROM ${"books"} JOIN ${"authors"} 
+        ON ${"books"}.${"authorId"} = ${"authors"}.${"id"}) SELECT 
+    `.run(pool);
+
+  })();
+  */
 
   /*
   import * as zu from './zapatos/src/utils';

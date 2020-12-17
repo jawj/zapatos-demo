@@ -142,4 +142,7 @@ CREATE TABLE "subjectPhotos"
 , CONSTRAINT userPhotosUnique UNIQUE ("subjectId", "photoId")
 );
 
+CREATE MATERIALIZED VIEW "matBooks" AS SELECT "name", "title" FROM "authors" JOIN "books" ON "books"."authorId" = "authors"."id";
+CREATE MATERIALIZED VIEW "matCustom" AS SELECT * from "customTypes";
+
 ALTER DATABASE "zapatos_demo" SET search_path TO "$user", public, extra;
