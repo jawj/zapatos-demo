@@ -34,7 +34,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "customTypes", "dimensions", "emailAuthentication", "employees", "identityTest", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -895,6 +895,37 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
       millimetres: 100,
       // inches: 1,  // (wrong and) not allowed, is now a type error
     }).run(pool);
+  })();
+
+  await (async () => {
+    console.log('\n=== issue #62 ===\n');
+
+    const
+      now = new Date(),
+      then = new Date(Date.now() + 3600000),
+      files = await db.insert('files', [
+        { created_at: now, updated_at: now, path: '/imgs/a.jpg' },
+        { created_at: then, updated_at: then, path: '/imgs/b.jpg' },
+      ]).run(pool),
+      images = await db.insert('images', [
+        { file_id: files[0].id, height: 100, width: 200 },
+        { file_id: files[1].id, height: 200, width: 100 },
+      ]).run(pool);
+
+    const sortedImages = await db.select('images', db.all, {
+      lateral: { file: db.selectExactlyOne('files', { id: db.parent('file_id') }) },
+      order: { by: db.sql`result->'created_at'`, direction: 'ASC' }
+    }).run(pool);
+
+    const matchingImages = await db.select('images', db.sql`result->>'path' = ${db.param('/imgs/b.jpg')}`, {
+      lateral: { file: db.selectExactlyOne('files', { id: db.parent('file_id') }) }
+    }).run(pool)
+
+    void images, sortedImages, matchingImages;
+
+    // const images2 = await db.select('images', { 'file.path': '/test.jpg' }, {
+    //   lateral: { file: db.selectExactlyOne('files', { id: db.parent('file_id') }) }
+    // }).run(pool)
   })();
 
   /*
