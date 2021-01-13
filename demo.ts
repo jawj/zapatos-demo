@@ -898,6 +898,21 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   })();
 
   await (async () => {
+    console.log('\n=== issue #59 ===\n');
+
+    const
+      then = new Date('1989-01-21'),
+      now = new Date(),
+      file = await db.insert('files', { created_at: then, updated_at: then, path: '/imgs/a.jpg' }).run(pool);
+
+    await db.upsert('files',
+      { id: file.id, path: '/otherimgs/a.jpg', created_at: now, updated_at: now },
+      'id',
+      { updateColumns: ['path', 'updated_at'] }
+    ).run(pool);
+  })();
+
+  await (async () => {
     console.log('\n=== issue #62 ===\n');
 
     const
@@ -922,10 +937,6 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     }).run(pool)
 
     void images, sortedImages, matchingImages;
-
-    // const images2 = await db.select('images', { 'file.path': '/test.jpg' }, {
-    //   lateral: { file: db.selectExactlyOne('files', { id: db.parent('file_id') }) }
-    // }).run(pool)
   })();
 
   /*
