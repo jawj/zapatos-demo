@@ -8,6 +8,7 @@ CREATE TABLE "authors"
 , "name" TEXT NOT NULL
 , "isLiving" BOOLEAN
 );
+COMMENT ON COLUMN "authors"."name" IS 'Full name of author';
 
 CREATE TABLE "books" 
 ( "id" SERIAL PRIMARY KEY
