@@ -34,7 +34,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -937,6 +937,35 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     }).run(pool)
 
     void images, sortedImages, matchingImages;
+  })();
+
+  await (async () => {
+    console.log('\n=== PR #68 ===\n');
+
+    const insresult = await db.insert('int8test', { num: 12 }).run(pool);
+    console.log(typeof insresult.num, insresult.num);  // number 12
+
+    const selresult = await db.selectOne('int8test', db.all).run(pool);
+    console.log(typeof selresult!.num, selresult!.num);  // number 12
+
+    const manresult = await db.sql<s.int8test.SQL, s.int8test.Selectable[]>`SELECT * FROM ${"int8test"}`.run(pool);
+    console.log(typeof manresult[0].num, manresult[0].num);  // string 12
+
+    const jsonresult = await db.sql<s.int8test.SQL, { result: s.int8test.JSONSelectable[] }[]>`SELECT jsonb_agg(i.*) AS result FROM ${"int8test"} i`.run(pool);
+    console.log(typeof jsonresult[0].result[0].num, jsonresult[0].result[0].num); // number 12
+  })();
+
+  await (async () => {
+    console.log('\n=== issue #71 ===\n');
+    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "test_id" }, db.constraint("chat_pkey")).run(pool);
+    await db.upsert("chat", [{ telegram_chat_id: "test_id" }, { telegram_chat_id: "extra_id" }], db.constraint("chat_pkey")).run(pool)
+
+
+    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "test_id" }, "telegram_chat_id").run(pool);
+    await db.upsert("chat", [{ telegram_chat_id: "test_id" }, { telegram_chat_id: "other_id" }], "telegram_chat_id").run(pool);
+
+    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "new_id", created: new Date() }, "telegram_chat_id").run(pool);
+    await db.upsert("chat", [{ telegram_chat_id: "new_id", created: new Date() }, { telegram_chat_id: "other_id", created: new Date() }], "telegram_chat_id").run(pool);
   })();
 
   /*

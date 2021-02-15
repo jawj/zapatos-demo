@@ -146,4 +146,12 @@ CREATE TABLE "subjectPhotos"
 CREATE MATERIALIZED VIEW "matBooks" AS SELECT "name", "title" FROM "authors" JOIN "books" ON "books"."authorId" = "authors"."id";
 CREATE MATERIALIZED VIEW "matCustom" AS SELECT * from "customTypes";
 
+CREATE TABLE int8test (num int8);
+
+CREATE TABLE "chat" (
+  "telegram_chat_id" varchar(100) PRIMARY KEY,
+  "created" TIMESTAMPTZ NOT NULL DEFAULT (now()),
+  "updated" TIMESTAMPTZ NOT NULL DEFAULT (now())
+);
+
 ALTER DATABASE "zapatos_demo" SET search_path TO "$user", public, extra;
