@@ -154,4 +154,9 @@ CREATE TABLE "chat" (
   "updated" TIMESTAMPTZ NOT NULL DEFAULT (now())
 );
 
+CREATE TABLE "nameCounts" 
+( "name" text primary key
+, "count" integer
+);
+
 ALTER DATABASE "zapatos_demo" SET search_path TO "$user", public, extra;

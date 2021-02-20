@@ -34,7 +34,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -957,15 +957,40 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
 
   await (async () => {
     console.log('\n=== issue #71 ===\n');
+
     for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "test_id" }, db.constraint("chat_pkey")).run(pool);
     await db.upsert("chat", [{ telegram_chat_id: "test_id" }, { telegram_chat_id: "extra_id" }], db.constraint("chat_pkey")).run(pool)
-
 
     for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "test_id" }, "telegram_chat_id").run(pool);
     await db.upsert("chat", [{ telegram_chat_id: "test_id" }, { telegram_chat_id: "other_id" }], "telegram_chat_id").run(pool);
 
     for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "new_id", created: new Date() }, "telegram_chat_id").run(pool);
     await db.upsert("chat", [{ telegram_chat_id: "new_id", created: new Date() }, { telegram_chat_id: "other_id", created: new Date() }], "telegram_chat_id").run(pool);
+
+    await db.upsert("chat", { telegram_chat_id: "test_id", created: new Date() }, "telegram_chat_id", { updateColumns: [] }).run(pool);
+
+    const
+      x = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey")).run(pool),
+      y = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { updateColumns: [] }).run(pool),
+      z = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { updateColumns: db.doNothing }).run(pool);
+
+    console.log(x.$action, y?.$action, z?.$action);
+  })();
+
+  await (async () => {
+    console.log('\n=== upsert with updateValues ===\n');
+
+    for (let i = 0; i < 2; i++) await db.upsert("nameCounts",
+      { name: "George", count: 1 }, "name",
+      { updateValues: { count: db.sql`${"nameCounts"}.${"count"} + 1` } }
+    ).run(pool);
+
+    for (let i = 0; i < 2; i++) await db.upsert("nameCounts",
+      [{ name: "George", count: 1 }, { name: "Bob", count: 1 }], "name",
+      { updateValues: { count: db.sql`${"nameCounts"}.${"count"} + 1` } }
+    ).run(pool);
+
+    await db.select("nameCounts", db.all).run(pool);
   })();
 
   /*
