@@ -754,6 +754,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
 
     void emptyResults, extraResult, minimalResult, fullResult;
 
+    console.log(fullResult.$action);
+
     const updatedBookIds = await db.update('books',
       { updatedAt: new Date() },
       { authorId: 1 },
@@ -966,15 +968,30 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
 
     for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "new_id", created: new Date() }, "telegram_chat_id").run(pool);
     await db.upsert("chat", [{ telegram_chat_id: "new_id", created: new Date() }, { telegram_chat_id: "other_id", created: new Date() }], "telegram_chat_id").run(pool);
-
-    await db.upsert("chat", { telegram_chat_id: "test_id", created: new Date() }, "telegram_chat_id", { updateColumns: [] }).run(pool);
+    await db.upsert("chat", [{ telegram_chat_id: "new_id", created: new Date() }], "telegram_chat_id").run(pool);
 
     const
-      x = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey")).run(pool),
+      r1 = await db.upsert("chat", { telegram_chat_id: "test_id", created: new Date() }, "telegram_chat_id", { updateColumns: [] }).run(pool),
+      r2 = await db.upsert("chat", [{ telegram_chat_id: "test_id", created: new Date() }], "telegram_chat_id", { updateColumns: [] }).run(pool);
+
+    console.log('do nothing single insert result', r1);
+    console.log('do nothing array insert result', r2);
+
+    const
+      x = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { reportAction: 'suppress' }).run(pool),
       y = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { updateColumns: [] }).run(pool),
       z = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { updateColumns: db.doNothing }).run(pool);
 
-    console.log(x.$action, y?.$action, z?.$action);
+    // @ts-expect-error -- $action is undefined
+    console.log(x.$action);
+    try {
+      // @ts-expect-error -- y may be undefined
+      console.log(y.$action);
+    } catch { }
+    try {
+      // @ts-expect-error -- z may be undefined
+      console.log(z.$action);
+    } catch { }
   })();
 
   await (async () => {
