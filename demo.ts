@@ -1010,6 +1010,32 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     await db.select("nameCounts", db.all).run(pool);
   })();
 
+  await (async () => {
+    console.log('\n=== type vs interface (issue #85) ===\n');
+
+    type UnknownObject = Record<string, unknown>;
+
+    const myFunction = <T extends UnknownObject>(arg: T): void => {
+      console.log(arg);
+    }
+    const processDb = (): s.files.Insertable => {
+      return { path: '/', created_at: new Date(), updated_at: new Date() };
+    }
+    const someInsertable = processDb();
+
+    // fix 1
+    myFunction({ ...someInsertable });
+
+    // fix 2
+    type MyInsertableTypeAlias = { [s in keyof s.files.Insertable]: s.files.Insertable[s] };
+
+    const processDbAlt = (): MyInsertableTypeAlias => {
+      return { path: '/', created_at: new Date(), updated_at: new Date() };
+    }
+    const someTypeAlias = processDbAlt();
+    myFunction(someTypeAlias);
+  })();
+
   /*
   await (async () => {
     console.log('\n=== CTEs (WITH) ===\n');
