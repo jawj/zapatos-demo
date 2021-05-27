@@ -3,6 +3,7 @@
     "connectionString": "postgresql://localhost:5434/zapatos_demo"
   },
   "outExt": ".ts",
+  "schemaJSDoc": false,
   "schemas": {
     "public": {
       "include": "*",

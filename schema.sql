@@ -176,4 +176,26 @@ CREATE TABLE "numeric_test"
 ( "col" numeric(5,5)
 );
 
+CREATE TABLE "stringreturning"
+( "date" date
+, "arrdate" date[]
+, "time" time
+, "arrtime" time[]
+, "timetz" timetz
+, "arrtimetz" timetz[]
+, "timestamp" timestamp
+, "arrtimestamp" timestamp[]
+, "timestamptz" timestamptz
+, "arrtimestamptz" timestamptz[]
+, "interval" interval
+, "int4range" int4range
+, "int8range" int8range
+, "numrange" numrange
+, "tsrange" tsrange
+, "tstzrange" tstzrange
+, "daterange" daterange
+, "bytea" bytea
+, "int8" int8
+);
+
 ALTER DATABASE "zapatos_demo" SET search_path TO "$user", public, extra;

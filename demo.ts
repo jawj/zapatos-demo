@@ -7,6 +7,9 @@ import { conditions as dc } from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import type * as c from 'zapatos/custom';
 
+import * as moment from 'moment';
+import { DateTime } from 'luxon';
+import { DateString, TimestampString, TimestampTzString } from 'zapatos/dist/db';
 
 const
   queryDebug = debug('db:query'),
@@ -34,7 +37,7 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -449,6 +452,78 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
   await (async () => {
     console.log('\n=== Date complications ===\n');
 
+    const now = new Date('2021-05-25T23:25:12.987Z');
+    console.log('toTimestampTzString:', db.toString(now, 'timestamptz'));
+    console.log('toLocalTimestampString:', db.toString(now, 'timestamp:local'));
+    console.log('toUTCTimestampString:', db.toString(now, 'timestamp:UTC'));
+    console.log('toLocalDateString:', db.toString(now, 'date:local'));
+    console.log('toUTCDateString:', db.toString(now, 'date:UTC'));
+
+    const dateStr = '2020-01-01T12:00:01Z' as db.TimestampTzString;
+    const dateStrOrNull = Math.random() < 0.5 ? dateStr : null;
+
+    const d1: null = db.toDate(null);
+    const d2: Date = db.toDate(dateStr);
+    const d3: Date | null = db.toDate(dateStrOrNull);
+    void d1, d2, d3;
+
+    const ds1 = db.toString(d1, 'timestamptz');
+    const ds2 = db.toString(d2, 'timestamptz');
+    const ds3 = db.toString(d3, 'timestamptz');
+    void ds1, ds2, ds3;
+
+    const
+      td1: null = db.toDate(null, 'local'),
+      td2: Date = db.toDate('2012-10-09T03:34Z'),
+      td3: Date = db.toDate('2012-10-09T03:34', 'local'),
+      td4: Date = db.toDate('2012-10-09', 'UTC'),
+      td5: Date | null = db.toDate(Math.random() < 0.5 ? null : '2012-10-09T03:34Z'),
+      td6: Date | null = db.toDate(Math.random() < 0.5 ? null : '2012-10-09T03:34', 'local'),
+      td7: Date | null = db.toDate(Math.random() < 0.5 ? null : '2012-10-09', 'UTC'),
+      td8: Date | null = db.toDate(Math.random() < 0.5 ? null : Math.random() < 0.5 ? '2012-10-09' : '2012-10-09T03:34', 'UTC');
+
+    void td1, td2, td3, td4, td5, td6, td7, td8;
+
+    const
+      d = new Date(),
+      ts1: null = db.toString(null, 'timestamptz'),
+      ts2: TimestampTzString = db.toString(d, 'timestamptz'),
+      ts3: TimestampString = db.toString(d, 'timestamp:local'),
+      ts4: DateString = db.toString(d, 'date:UTC'),
+      ts5: TimestampTzString | null = db.toString(Math.random() < 0.5 ? null : d, 'timestamptz'),
+      ts6: TimestampString | null = db.toString(Math.random() < 0.5 ? null : d, 'timestamp:UTC'),
+      ts7: DateString | null = db.toString(Math.random() < 0.5 ? null : d, 'date:local');
+
+    void ts1, ts2, ts3, ts4, ts5, ts6, ts7;
+
+    // moment
+    const toMoment = db.strict<db.TimestampTzString, moment.Moment>(moment);
+
+    const m1: null = toMoment(null);
+    const m2: moment.Moment = toMoment(dateStr);
+    const m3: moment.Moment | null = toMoment(dateStrOrNull);
+    void m1, m2, m3;
+
+    // Luxon
+    const toDateTime = db.strict<db.TimestampTzString, DateTime>(DateTime.fromISO);
+
+    const dt1: null = toDateTime(null);
+    const dt2: DateTime = toDateTime(dateStr);
+    const dt3: DateTime | null = toDateTime(dateStrOrNull);
+    void dt1, dt2, dt3;
+
+    const toTimestampTzString = db.strict((d: DateTime | Date) =>
+      d instanceof DateTime ? d.toISO() as db.DateString : db.toString(d, 'timestamptz'));
+
+    const ds = toTimestampTzString(DateTime.fromISO('1900-01-10T14:45:56.789Z'));
+    console.log('toDateString: DateTime', ds);
+
+    const nulled = toTimestampTzString(null);
+    console.log('toDateString: null', nulled);
+
+    const dsOrNull = toTimestampTzString(Math.random() < 0.5 ? DateTime.fromISO('1900-01-10T14:45:56.789Z') : null);
+    console.log('toDateString: DateString | null', dsOrNull);
+
     const
       oneBooks: s.books.Selectable[] =
         await db.sql<s.books.SQL>`SELECT * FROM ${"books"} LIMIT 1`.run(pool),
@@ -460,9 +535,17 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     const
       book = await db.selectOne('books', db.all, { columns: ['createdAt'] }).run(pool),
       someSoCalledDate = book!.createdAt,
-      someConvertedDate = new Date(someSoCalledDate);
+      someConvertedDate = db.toDate(someSoCalledDate),
+      someConvertedDateTime = toDateTime(someSoCalledDate),
+      someConvertedMoment = toMoment(someSoCalledDate);
 
-    console.log(someSoCalledDate.constructor, someSoCalledDate, someConvertedDate);
+    console.log(
+      '\nconstructor:', someSoCalledDate.constructor,
+      '\nDateString:', someSoCalledDate,
+      '\nDate:', someConvertedDate,
+      '\nDate via DateTime:', someConvertedDateTime.toJSDate(),
+      '\nDate via Moment:', someConvertedMoment.toDate()
+    );
 
     // this fails to find anything, because JS date conversion truncates μs to ms
     const bookDatedByDate = await db.selectOne('books', { createdAt: someActualDate }).run(pool);
@@ -1035,6 +1118,119 @@ const pool = new pg.Pool({ connectionString: 'postgresql://localhost:5434/zapato
     const someTypeAlias = processDbAlt();
     myFunction(someTypeAlias);
   })();
+
+  await (async () => {
+    console.log('\n=== Prepared statements (issue #78) ===\n');
+
+    const q1 = db.select('authors', db.all).prepared();
+    await q1.run(pool);
+    await q1.run(pool);
+
+    const q2 = db.select('books', db.all).prepared('myprepped');
+    await q2.run(pool);
+    await q2.run(pool);
+
+    const q3 = db.select('files', db.all).prepared();
+    await q3.run(pool);
+    await q3.run(pool);
+  })();
+
+  await (async () => {
+    console.log('\n=== string-valued extras for column aliasing ===\n');
+
+    const firstBookTitle = await db.selectOne("books", db.all, {
+      order: { by: 'title', direction: 'ASC' },
+      extras: {
+        bookTitle1: db.sql<s.books.SQL, string | null>`${"title"}`,  // old way
+        bookTitle2: "title",  // new way
+        bookId1: db.sql<s.books.SQL, number>`${"id"}`,  // old way
+        bookId2: "id",  // new way
+      }
+    }).run(pool);
+
+    console.log(firstBookTitle!.bookTitle2, firstBookTitle!.bookId2);
+
+    const
+      author = await db.selectOne('authors', db.all).run(pool),
+      book = await db.insert('books', {
+        authorId: author!.id,
+        title: 'Some book or other',
+        createdAt: db.sql`now()`,
+      }, {
+        returning: ['id'],
+        extras: {
+          aliasedTitle: "title",
+          upperTitle: db.sql<s.books.SQL, string>`upper(${"title"})`,
+        },
+      }).run(pool);
+
+    console.log(book.upperTitle);
+  })();
+
+  await (async () => {
+    console.log('\n=== JSON string returning types ===\n');
+
+    await db.sql`SET datestyle TO 'postgres'`.run(pool);
+    await db.sql`SET intervalstyle TO 'postgres'`.run(pool);
+
+    db.setConfig({ castArrayParamsToJson: false });
+
+    await db.insert('stringreturning', [{
+      date: '2020-01-01',
+      arrdate: ['2020-01-01', '1945-08-08'],
+      time: '18:23:12.345',
+      arrtime: ['18:23:12.345', '19:23:12.345'],
+      timetz: '18:23:56.190+02:15',
+      arrtimetz: ['18:23:56.190+02:15', '19:23:56.190+02:15'],
+      timestamp: '2020-01-01T18:23:03.123',
+      arrtimestamp: ['2020-01-01T18:23:03.123', '2020-01-02T18:23:03.123'],
+      timestamptz: '2020-01-01T18:23:03.123Z',
+      arrtimestamptz: ['2020-01-01T18:23:03.123Z', '2020-01-03T18:23:03.123Z'],
+      daterange: '["2020-01-01","2021-01-03")',
+      int4range: '(0, 10]',
+      int8range: '(0, 10]',
+      numrange: '(0, 10]',
+      tsrange: '["2020-01-01T18:23:03.123",2020-01-01T19:23:03.123)',
+      tstzrange: '("2020-01-01T18:23:03.123",2020-01-01T19:23:03.123]',
+      interval: 'P1Y2M3DT4H5M6S',
+      bytea: `\\x${Buffer.from('abc'.repeat(100)).toString('hex')}` as db.ByteArrayString,
+      int8: 123,
+    }, {
+      date: '2020-01-01',
+      time: '18:23',
+      timetz: '18:23+02',
+      timestamp: '2020-01-01T18:23:03.123',
+      timestamptz: '2020-01-01T18:23:03.123Z',
+      daterange: '[,"2021-01-03")',
+      int4range: '(0,]',
+      int8range: '(0, 10]',
+      numrange: '(0, 10]',
+      tsrange: '["2020-01-01T18:23:03.123",infinity)',
+      tstzrange: '("2020-01-01T18:23:03.123",)',
+      bytea: Buffer.from('abc'),
+    }]).run(pool);
+  })();
+
+  await db.sql`SET datestyle TO 'postgres'`.run(pool);
+  await db.sql`SET intervalstyle TO 'postgres'`.run(pool);
+
+  const sr = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
+  console.log('raw pg:', sr);
+
+  const srjson = await db.select('stringreturning', db.all).run(pool);
+  console.log('json:', srjson);
+
+  await db.sql`SET datestyle TO 'iso'`.run(pool);
+  await db.sql`SET intervalstyle TO 'iso_8601'`.run(pool);
+
+  const sriso = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
+  console.log('raw pg:', sriso);
+
+  const srisojson = await db.select('stringreturning', db.all).run(pool);
+  console.log('json:', srisojson);
+
+  console.log(db.toBuffer(srisojson[0].bytea));
+
 
   /*
   await (async () => {
