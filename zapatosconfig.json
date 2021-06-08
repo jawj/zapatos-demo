@@ -1,9 +1,10 @@
 {
   "db": {
-    "connectionString": "postgresql://localhost:5434/zapatos_demo"
+    "connectionString": "{{DB_URL}}"
   },
   "outExt": ".ts",
-  "schemaJSDoc": false,
+  "schemaJSDoc": true,
+  "debugListener": false,
   "schemas": {
     "public": {
       "include": "*",

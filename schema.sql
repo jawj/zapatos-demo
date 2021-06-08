@@ -145,6 +145,7 @@ CREATE TABLE "subjectPhotos"
 
 CREATE MATERIALIZED VIEW "matBooks" AS SELECT "name", "title" FROM "authors" JOIN "books" ON "books"."authorId" = "authors"."id";
 CREATE MATERIALIZED VIEW "matCustom" AS SELECT * from "customTypes";
+COMMENT ON COLUMN "matBooks"."title" IS 'Full title of book';
 
 CREATE TABLE int8test (num int8);
 

@@ -5,11 +5,8 @@ import * as debug from 'debug';
 import * as db from 'zapatos/db';
 import { conditions as dc } from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import type * as c from 'zapatos/custom';
+// import type * as c from 'zapatos/custom';
 
-import * as moment from 'moment';
-import { DateTime } from 'luxon';
-import { DateString, TimestampString, TimestampTzString } from 'zapatos/db';
 
 const
   queryDebug = debug('db:query'),
@@ -39,7 +36,7 @@ const
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.Table[] = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", /*"dimensions" ,*/ "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -454,78 +451,6 @@ const
   await (async () => {
     console.log('\n=== Date complications ===\n');
 
-    const now = new Date('2021-05-25T23:25:12.987Z');
-    console.log('toTimestampTzString:', db.toString(now, 'timestamptz'));
-    console.log('toLocalTimestampString:', db.toString(now, 'timestamp:local'));
-    console.log('toUTCTimestampString:', db.toString(now, 'timestamp:UTC'));
-    console.log('toLocalDateString:', db.toString(now, 'date:local'));
-    console.log('toUTCDateString:', db.toString(now, 'date:UTC'));
-
-    const dateStr = '2020-01-01T12:00:01Z' as db.TimestampTzString;
-    const dateStrOrNull = Math.random() < 0.5 ? dateStr : null;
-
-    const d1: null = db.toDate(null);
-    const d2: Date = db.toDate(dateStr);
-    const d3: Date | null = db.toDate(dateStrOrNull);
-    void d1, d2, d3;
-
-    const ds1 = db.toString(d1, 'timestamptz');
-    const ds2 = db.toString(d2, 'timestamptz');
-    const ds3 = db.toString(d3, 'timestamptz');
-    void ds1, ds2, ds3;
-
-    const
-      td1: null = db.toDate(null, 'local'),
-      td2: Date = db.toDate('2012-10-09T03:34Z'),
-      td3: Date = db.toDate('2012-10-09T03:34', 'local'),
-      td4: Date = db.toDate('2012-10-09', 'UTC'),
-      td5: Date | null = db.toDate(Math.random() < 0.5 ? null : '2012-10-09T03:34Z'),
-      td6: Date | null = db.toDate(Math.random() < 0.5 ? null : '2012-10-09T03:34', 'local'),
-      td7: Date | null = db.toDate(Math.random() < 0.5 ? null : '2012-10-09', 'UTC'),
-      td8: Date | null = db.toDate(Math.random() < 0.5 ? null : Math.random() < 0.5 ? '2012-10-09' : '2012-10-09T03:34', 'UTC');
-
-    void td1, td2, td3, td4, td5, td6, td7, td8;
-
-    const
-      d = new Date(),
-      ts1: null = db.toString(null, 'timestamptz'),
-      ts2: TimestampTzString = db.toString(d, 'timestamptz'),
-      ts3: TimestampString = db.toString(d, 'timestamp:local'),
-      ts4: DateString = db.toString(d, 'date:UTC'),
-      ts5: TimestampTzString | null = db.toString(Math.random() < 0.5 ? null : d, 'timestamptz'),
-      ts6: TimestampString | null = db.toString(Math.random() < 0.5 ? null : d, 'timestamp:UTC'),
-      ts7: DateString | null = db.toString(Math.random() < 0.5 ? null : d, 'date:local');
-
-    void ts1, ts2, ts3, ts4, ts5, ts6, ts7;
-
-    // moment
-    const toMoment = db.strict<db.TimestampTzString, moment.Moment>(moment);
-
-    const m1: null = toMoment(null);
-    const m2: moment.Moment = toMoment(dateStr);
-    const m3: moment.Moment | null = toMoment(dateStrOrNull);
-    void m1, m2, m3;
-
-    // Luxon
-    const toDateTime = db.strict<db.TimestampTzString, DateTime>(DateTime.fromISO);
-
-    const dt1: null = toDateTime(null);
-    const dt2: DateTime = toDateTime(dateStr);
-    const dt3: DateTime | null = toDateTime(dateStrOrNull);
-    void dt1, dt2, dt3;
-
-    const toTimestampTzString = db.strict((d: DateTime | Date) =>
-      d instanceof DateTime ? d.toISO() as db.DateString : db.toString(d, 'timestamptz'));
-
-    const ds = toTimestampTzString(DateTime.fromISO('1900-01-10T14:45:56.789Z'));
-    console.log('toDateString: DateTime', ds);
-
-    const nulled = toTimestampTzString(null);
-    console.log('toDateString: null', nulled);
-
-    const dsOrNull = toTimestampTzString(Math.random() < 0.5 ? DateTime.fromISO('1900-01-10T14:45:56.789Z') : null);
-    console.log('toDateString: DateString | null', dsOrNull);
-
     const
       oneBooks: s.books.Selectable[] =
         await db.sql<s.books.SQL>`SELECT * FROM ${"books"} LIMIT 1`.run(pool),
@@ -537,17 +462,9 @@ const
     const
       book = await db.selectOne('books', db.all, { columns: ['createdAt'] }).run(pool),
       someSoCalledDate = book!.createdAt,
-      someConvertedDate = db.toDate(someSoCalledDate),
-      someConvertedDateTime = toDateTime(someSoCalledDate),
-      someConvertedMoment = toMoment(someSoCalledDate);
+      someConvertedDate = new Date(someSoCalledDate);
 
-    console.log(
-      '\nconstructor:', someSoCalledDate.constructor,
-      '\nDateString:', someSoCalledDate,
-      '\nDate:', someConvertedDate,
-      '\nDate via DateTime:', someConvertedDateTime.toJSDate(),
-      '\nDate via Moment:', someConvertedMoment.toDate()
-    );
+    console.log(someSoCalledDate.constructor, someSoCalledDate, someConvertedDate);
 
     // this fails to find anything, because JS date conversion truncates μs to ms
     const bookDatedByDate = await db.selectOne('books', { createdAt: someActualDate }).run(pool);
@@ -655,21 +572,6 @@ const
       }).run(pool);
 
     void noCols, noColsExtras, noColsLateral, noColsExtrasLateral;  // no warnings, please
-  })();
-
-  await (async () => {
-    console.log('\n=== geometry and CASTs ===\n');
-    const
-      pointLocation: c.PgGeometry = { type: 'Point', coordinates: [1, 2] },
-      inserted = await db.insert("customTypes", {
-        structuredDocument: [1, 2, 3],
-        location: pointLocation,
-        otherLocation: db.param({ type: 'LineString', coordinates: [[1, 2], [3, 4]] }, true),
-        bar: '12',
-        numbers: db.param([1, 2, 3], false),
-      }).run(pool);
-
-    console.log(inserted.otherLocation?.type);
   })();
 
   await (async () => {
@@ -873,27 +775,6 @@ const
   })();
 
   await (async () => {
-    console.log('\n=== WITH TIES (requires Postgres 13+) ===\n');
-
-    const
-      firstAuthorBooks = await db.select('books', db.all, {
-        order: [{ by: 'authorId', direction: 'ASC' }],
-        limit: 1,
-        withTies: true,
-      }).run(pool);
-
-    void firstAuthorBooks;  // no warnings, please
-  })();
-
-  await (async () => {
-    console.log('\n=== undefined in Whereables ===\n');
-
-    await db.select('authors', {}).run(pool);  // {} is treated as TRUE
-    await db.select('authors', { name: undefined }).run(pool);  // this would ideally be a type error
-
-  })();
-
-  await (async () => {
     console.log('\n=== Many-to-many join ===\n');
 
     const
@@ -960,28 +841,6 @@ const
 
     void photos;
 
-  })();
-
-  await (async () => {
-    console.log('\n=== triggers and generated ===\n');
-
-    await db.insert('dimensions', { millimetres: 100 }).run(pool);
-
-    await db.insert('dimensions', {
-      millimetres: 100,
-      // metres: 0.2,  // (wrong and) gets overridden by trigger -- now disallowed
-    }).run(pool);
-
-    await db.insert('dimensions', {
-      millimetres: 100,
-      default_id: 100,  // allowed
-      // always_id: 100,  // not allowed, is now a type error
-    }).run(pool);
-
-    await db.insert('dimensions', {
-      millimetres: 100,
-      // inches: 1,  // (wrong and) not allowed, is now a type error
-    }).run(pool);
   })();
 
   await (async () => {
@@ -1096,152 +955,52 @@ const
   })();
 
   await (async () => {
-    console.log('\n=== type vs interface (issue #85) ===\n');
+    console.log('\n=== selectOne (issue #84) ===\n');
 
-    type UnknownObject = Record<string, unknown>;
-
-    const myFunction = <T extends UnknownObject>(arg: T): void => {
-      console.log(arg);
-    }
-    const processDb = (): s.files.Insertable => {
-      return { path: '/', created_at: new Date(), updated_at: new Date() };
-    }
-    const someInsertable = processDb();
-
-    // fix 1
-    myFunction({ ...someInsertable });
-
-    // fix 2
-    type MyInsertableTypeAlias = { [s in keyof s.files.Insertable]: s.files.Insertable[s] };
-
-    const processDbAlt = (): MyInsertableTypeAlias => {
-      return { path: '/', created_at: new Date(), updated_at: new Date() };
-    }
-    const someTypeAlias = processDbAlt();
-    myFunction(someTypeAlias);
+    await db.selectOne("files", db.all).run(pool);
   })();
 
+  /*
   await (async () => {
-    console.log('\n=== Prepared statements (issue #78) ===\n');
+    console.log('\n=== CTEs (WITH) ===\n');
 
-    const q1 = db.select('authors', db.all).prepared();
-    await q1.run(pool);
-    await q1.run(pool);
+    await db.sql`
+      WITH "bookAuthors" as (
+        SELECT ${"books"}.*, to_jsonb(${"authors"}.*) as ${"author"}
+        FROM ${"books"} JOIN ${"authors"} 
+        ON ${"books"}.${"authorId"} = ${"authors"}.${"id"}) SELECT 
+    `.run(pool);
 
-    const q2 = db.select('books', db.all).prepared('myprepped');
-    await q2.run(pool);
-    await q2.run(pool);
-
-    const q3 = db.select('files', db.all).prepared();
-    await q3.run(pool);
-    await q3.run(pool);
   })();
+  */
 
+  /*
+  import * as zu from './zapatos/src/utils';
+   
+  // ...
+   
   await (async () => {
-    console.log('\n=== string-valued extras for column aliasing ===\n');
-
-    const firstBookTitle = await db.selectOne("books", db.all, {
-      order: { by: 'title', direction: 'ASC' },
-      extras: {
-        bookTitle1: db.sql<s.books.SQL, string | null>`${"title"}`,  // old way
-        bookTitle2: "title",  // new way
-        bookId1: db.sql<s.books.SQL, number>`${"id"}`,  // old way
-        bookId2: "id",  // new way
-      }
-    }).run(pool);
-
-    console.log(firstBookTitle!.bookTitle2, firstBookTitle!.bookId2);
-
-    const
-      author = await db.selectOne('authors', db.all).run(pool),
-      book = await db.insert('books', {
-        authorId: author!.id,
-        title: 'Some book or other',
-        createdAt: db.sql`now()`,
-      }, {
-        returning: ['id'],
-        extras: {
-          aliasedTitle: "title",
-          upperTitle: db.sql<s.books.SQL, string>`upper(${"title"})`,
-        },
-      }).run(pool);
-
-    console.log(book.upperTitle);
+    console.log('\n=== multiVals ===\n');
+   
+    // turns out it's hard to make this work well without recreating the whole insert shortcut
+   
+    const multiVals = (insertables: s.Insertable[]) =>
+      zu.mapWithSeparator(
+        zu.completeKeysWithDefault(insertables),
+        db.sql`, `,
+        v => db.sql`(${db.vals(v)})`,
+      );
+   
+    const authorData: s.authors.Insertable[] = [
+      { name: 'William Shakespeare' },
+      { name: 'Christopher Marlowe', isLiving: false },
+    ];
+    await db.sql`
+      INSERT INTO ${"authors"} (${db.cols(authorData)}) 
+      VALUES ${multiVals(authorData)}`.run(pool);
+   
   })();
-
-  await (async () => {
-    console.log('\n=== JSON string returning types ===\n');
-
-    await db.sql`SET datestyle TO 'postgres'`.run(pool);
-    await db.sql`SET intervalstyle TO 'postgres'`.run(pool);
-
-    db.setConfig({ castArrayParamsToJson: false });
-
-    await db.insert('stringreturning', [{
-      date: '2020-01-01',
-      arrdate: ['2020-01-01', '1945-08-08'],
-      time: '18:23:12.345',
-      arrtime: ['18:23:12.345', '19:23:12.345'],
-      timetz: '18:23:56.190+02:15',
-      arrtimetz: ['18:23:56.190+02:15', '19:23:56.190+02:15'],
-      timestamp: '2020-01-01T18:23:03.123',
-      arrtimestamp: ['2020-01-01T18:23:03.123', '2020-01-02T18:23:03.123'],
-      timestamptz: '2020-01-01T18:23:03.123Z',
-      arrtimestamptz: ['2020-01-01T18:23:03.123Z', '2020-01-03T18:23:03.123Z'],
-      daterange: '["2020-01-01","2021-01-03")',
-      int4range: '(0, 10]',
-      int8range: '(0, 10]',
-      numrange: '(0, 10]',
-      tsrange: '["2020-01-01T18:23:03.123",2020-01-01T19:23:03.123)',
-      tstzrange: '("2020-01-01T18:23:03.123",2020-01-01T19:23:03.123]',
-      interval: 'P1Y2M3DT4H5M6S',
-      bytea: `\\x${Buffer.from('abc'.repeat(100)).toString('hex')}` as db.ByteArrayString,
-      int8: 123,
-    }, {
-      date: '2020-01-01',
-      time: '18:23',
-      timetz: '18:23+02',
-      timestamp: '2020-01-01T18:23:03.123',
-      timestamptz: '2020-01-01T18:23:03.123Z',
-      daterange: '[,"2021-01-03")',
-      int4range: '(0,]',
-      int8range: '(0, 10]',
-      numrange: '(0, 10]',
-      tsrange: '["2020-01-01T18:23:03.123",infinity)',
-      tstzrange: '("2020-01-01T18:23:03.123",)',
-      bytea: Buffer.from('abc'),
-    }]).run(pool);
-  })();
-
-  await db.sql`SET datestyle TO 'postgres'`.run(pool);
-  await db.sql`SET intervalstyle TO 'postgres'`.run(pool);
-
-  const sr = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
-  console.log('raw pg:', sr);
-
-  const srjson = await db.select('stringreturning', db.all).run(pool);
-  console.log('json:', srjson);
-
-  await db.sql`SET datestyle TO 'iso'`.run(pool);
-  await db.sql`SET intervalstyle TO 'iso_8601'`.run(pool);
-
-  const sriso = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
-  console.log('raw pg:', sriso);
-
-  const srisojson = await db.select('stringreturning', db.all).run(pool);
-  console.log('json:', srisojson);
-
-  console.log(db.toBuffer(srisojson[0].bytea));
-
-  await (async () => {
-    console.log('\n=== LIMIT, FETCH FIRST and OFFSET (issue #89) ===\n');
-
-    await db.select('books', db.all, { limit: 2 }).run(pool);
-    await db.select('books', db.all, { limit: 2, offset: 1 }).run(pool);
-    await db.select('books', db.all, { limit: 2, offset: 1, order: { by: 'authorId', direction: 'ASC' } }).run(pool);
-    await db.select('books', db.all, { limit: 1, withTies: true, order: { by: 'authorId', direction: 'ASC' } }).run(pool);
-    await db.select('books', db.all, { limit: 1, offset: 2, withTies: true, order: { by: 'authorId', direction: 'ASC' } }).run(pool);
-  })();
+  */
 
   await pool.end();
 })();
