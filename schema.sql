@@ -197,6 +197,30 @@ CREATE TABLE "stringreturning"
 , "daterange" daterange
 , "bytea" bytea
 , "int8" int8
+, "money" money
+, "numeric" numeric
+);
+
+CREATE TABLE "chapters"
+( "id" serial PRIMARY KEY
+, "bookId" int NOT NULL REFERENCES "books"("id")
+);
+CREATE TABLE "paragraphs"
+( "id" serial PRIMARY KEY
+, "chapterId" int NOT NULL REFERENCES "chapters"("id")
+);
+
+CREATE VIEW testview AS (SELECT * FROM "authors");
+CREATE VIEW testviewnoins AS (SELECT lower(name) FROM "authors");
+
+CREATE EXTENSION file_fdw;
+CREATE SERVER local_file FOREIGN DATA WRAPPER file_fdw;
+CREATE FOREIGN TABLE words (word text NOT NULL)
+  SERVER local_file
+  OPTIONS (filename '/usr/share/dict/words');
+
+CREATE TABLE "bools" (
+"value" boolean NOT NULL DEFAULT false 
 );
 
 ALTER DATABASE "zapatos_demo" SET search_path TO "$user", public, extra;

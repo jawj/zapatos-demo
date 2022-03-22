@@ -39,7 +39,7 @@ const
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllTables = ["appleTransactions", "authors", "bankAccounts", "books", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -774,7 +774,7 @@ const
     try {
       await transferMoney(accountA.id, accountB.id, 60, pool);
 
-    } catch (err) {
+    } catch (err: any) {
       console.log(err.message, '/', err.detail);
     }
 
@@ -784,7 +784,7 @@ const
         transferMoney(accountA.id, accountC.id, 40, txnClient)
       ]));
 
-    } catch (err) {
+    } catch (err: any) {
       console.log(err.message, '/', err.detail);
     }
 
@@ -883,14 +883,6 @@ const
       }).run(pool);
 
     void firstAuthorBooks;  // no warnings, please
-  })();
-
-  await (async () => {
-    console.log('\n=== undefined in Whereables ===\n');
-
-    await db.select('authors', {}).run(pool);  // {} is treated as TRUE
-    await db.select('authors', { name: undefined }).run(pool);  // this would ideally be a type error
-
   })();
 
   await (async () => {
@@ -1197,6 +1189,8 @@ const
       interval: 'P1Y2M3DT4H5M6S',
       bytea: `\\x${Buffer.from('abc'.repeat(100)).toString('hex')}` as db.ByteArrayString,
       int8: 123,
+      money: 123.4,
+      numeric: 123.4,
     }, {
       date: '2020-01-01',
       time: '18:23',
@@ -1211,27 +1205,27 @@ const
       tstzrange: '("2020-01-01T18:23:03.123",)',
       bytea: Buffer.from('abc'),
     }]).run(pool);
+
+    await db.sql`SET datestyle TO 'postgres'`.run(pool);
+    await db.sql`SET intervalstyle TO 'postgres'`.run(pool);
+
+    const sr = await db.sql<s.stringreturning.SQL, s.stringreturning.Selectable>`SELECT * FROM ${'stringreturning'}`.run(pool);
+    console.log('raw pg:', sr);
+
+    const srjson = await db.select('stringreturning', db.all).run(pool);
+    console.log('json:', srjson);
+
+    await db.sql`SET datestyle TO 'iso'`.run(pool);
+    await db.sql`SET intervalstyle TO 'iso_8601'`.run(pool);
+
+    const sriso = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
+    console.log('raw pg:', sriso);
+
+    const srisojson = await db.select('stringreturning', db.all).run(pool);
+    console.log('json:', srisojson);
+
+    console.log(db.toBuffer(srisojson[0].bytea));
   })();
-
-  await db.sql`SET datestyle TO 'postgres'`.run(pool);
-  await db.sql`SET intervalstyle TO 'postgres'`.run(pool);
-
-  const sr = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
-  console.log('raw pg:', sr);
-
-  const srjson = await db.select('stringreturning', db.all).run(pool);
-  console.log('json:', srjson);
-
-  await db.sql`SET datestyle TO 'iso'`.run(pool);
-  await db.sql`SET intervalstyle TO 'iso_8601'`.run(pool);
-
-  const sriso = await db.sql`SELECT * FROM ${'stringreturning'}`.run(pool);
-  console.log('raw pg:', sriso);
-
-  const srisojson = await db.select('stringreturning', db.all).run(pool);
-  console.log('json:', srisojson);
-
-  console.log(db.toBuffer(srisojson[0].bytea));
 
   await (async () => {
     console.log('\n=== LIMIT, FETCH FIRST and OFFSET (issue #89) ===\n');
@@ -1241,6 +1235,114 @@ const
     await db.select('books', db.all, { limit: 2, offset: 1, order: { by: 'authorId', direction: 'ASC' } }).run(pool);
     await db.select('books', db.all, { limit: 1, withTies: true, order: { by: 'authorId', direction: 'ASC' } }).run(pool);
     await db.select('books', db.all, { limit: 1, offset: 2, withTies: true, order: { by: 'authorId', direction: 'ASC' } }).run(pool);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== joins with counts and sums (issue #96) ===\n');
+
+    const
+      [book1, book2] = await db.select('books', db.all, { limit: 2, order: { by: 'id', direction: 'ASC' } }).run(pool),
+      [ch1, ch2, ch3] = await db.insert('chapters', [{ bookId: book1.id }, { bookId: book1.id }, { bookId: book2.id }]).run(pool),
+      [para1, para2, para3] = await db.insert('paragraphs', [
+        { chapterId: ch1.id }, { chapterId: ch1.id },
+        { chapterId: ch2.id }, { chapterId: ch2.id }, { chapterId: ch2.id },
+        { chapterId: ch3.id },
+      ]).run(pool);
+
+    void para1, para2, para3;
+
+    const chcounts = await db.select('books', db.all, {
+      columns: ['title'],
+      lateral: {
+        chapterParaCounts: db.select('chapters', { bookId: db.parent('id') }, {
+          lateral: db.count('paragraphs', { chapterId: db.parent('id') })
+        })
+      }
+    }).run(pool);
+
+    console.dir(chcounts, { depth: 10 });
+
+    const pcounts = await db.select('books', db.all, {
+      columns: ['title'],
+      lateral: {
+        chapterParaCounts: db.select('chapters', { bookId: db.parent('id') }, {
+          lateral: db.sql`SELECT sum(result) AS result FROM (${db.count('paragraphs', { chapterId: db.parent('id') })}) AS sq`
+        })
+      }
+    }).run(pool);
+
+    console.dir(pcounts, { depth: 10 });
+
+    const paracounts = await db.select('books', db.all, {
+      columns: ['title'],
+      lateral: {
+        paraCount: db.sql<s.chapters.SQL>`
+          SELECT sum("my_join"."result") AS "result" FROM "chapters"
+          LEFT JOIN LATERAL (${db.count('paragraphs', { chapterId: db.sql`${db.self} = ${"chapters"}.${"id"}` })})
+          AS "my_join" ON TRUE
+          WHERE ${{ bookId: db.parent('id') }}`
+      }
+    }).run(pool);
+
+    console.log(paracounts);
+
+    const paracounts3 = await db.select('books', db.all, {
+      columns: ['title'],
+      lateral: {
+        paraCount: db.sum('chapters', { bookId: db.parent('id') }, {
+          columns: ['result' as any],
+          lateral: {
+            count: db.count('paragraphs', { chapterId: db.parent('id') })
+          }
+        })
+      }
+    }).run(pool);
+
+    console.log(paracounts3);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== order by lateral result (issue #108) ===\n');
+
+    const bookAuthors = await db.select('books', db.all, {
+      lateral: {
+        author: db.selectOne('authors', { id: db.parent('authorId') })
+      },
+      order: { by: db.sql`result->'author'->'name'`, direction: 'ASC' },
+      extras: { authorName: db.sql`result->'author'->'name'` }
+    }).run(pool);
+
+    console.log(bookAuthors);
+  })();
+
+
+  await (async () => {
+    console.log('\n=== undefined problems (issue #97) ===\n');
+
+    await db.select('authors', {}).run(pool);  // {} is treated as TRUE
+
+    // @ts-expect-error
+    await db.select('authors', { name: undefined }).run(pool);
+
+    try {
+      // @ts-expect-error
+      await db.insert('bools', { value: undefined }).run(pool);
+
+    } catch (err: any) {
+      console.error('Error caught as intended: ', err.message);
+    }
+
+    function defined<T extends Record<string | number | symbol, any>>(obj: T) {
+      return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as
+        { [k in keyof T as T[k] extends undefined ? never : k]: T[k] };
+    }
+
+    const z = defined({ x: 12, y: undefined });
+    console.log('z (should have no y property): ', z);
+
+    await db.select('authors', defined({ name: undefined })).run(pool);
   })();
 
   await pool.end();
