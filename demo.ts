@@ -24,9 +24,6 @@ db.setConfig({
     resultDebug(`(%s, %dms) %O`, strFromTxnId(txnId), elapsedMs?.toFixed(1), result),
   transactionListener: (message, txnId) =>
     txnDebug(`(%s) %s`, strFromTxnId(txnId), message),
-});
-
-db.setConfig({
   castArrayParamsToJson: true,
   castObjectParamsToJson: true,
 });
@@ -761,8 +758,10 @@ const
     const [accountA, accountB, accountC] = await db.insert('bankAccounts',
       [{ balance: 50 }, { balance: 50 }, { balance: 50 }]).run(pool);
 
-    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrPool: pg.Pool | db.TxnClientForSerializable) =>
-      db.serializable(txnClientOrPool, txnClient => Promise.all([
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+
+    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrQueryable: db.Queryable | db.TxnClientForSerializable) =>
+      db.serializable(txnClientOrQueryable, txnClient => Promise.all([
         db.update('bankAccounts',
           { balance: db.sql`${db.self} - ${db.param(amount)}` },
           { id: sendingAccountId }).run(txnClient),
@@ -771,12 +770,24 @@ const
           { id: receivingAccountId }).run(txnClient),
       ]));
 
+    console.log('Transfer attempt 1');
+    let caught1 = false;
+
     try {
       await transferMoney(accountA.id, accountB.id, 60, pool);
 
     } catch (err: any) {
       console.log(err.message, '/', err.detail);
+      caught1 = true;
+
+    } finally {
+      if (!caught1) throw new Error("Uh-oh: we should have caught an error");
     }
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+
+    console.log('Transfer attempt 2');
+    let caught2 = false;
 
     try {
       await db.serializable(pool, txnClient => Promise.all([
@@ -786,9 +797,133 @@ const
 
     } catch (err: any) {
       console.log(err.message, '/', err.detail);
+      caught2 = true;
+
+    } finally {
+      if (!caught2) throw new Error("Uh-oh: we should have caught an error");
     }
 
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
   })();
+
+  await (async () => {
+    console.log('\n=== Passing a PoolClient to transaction helper ===\n');
+
+    const [accountA, accountB, accountC] = await db.insert('bankAccounts',
+      [{ balance: 50 }, { balance: 50 }, { balance: 50 }]).run(pool);
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+
+    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrQueryable: db.Queryable | db.TxnClientForSerializable) =>
+      db.serializable(txnClientOrQueryable, txnClient => Promise.all([
+        db.update('bankAccounts',
+          { balance: db.sql`${db.self} - ${db.param(amount)}` },
+          { id: sendingAccountId }).run(txnClient),
+        db.update('bankAccounts',
+          { balance: db.sql`${db.self} + ${db.param(amount)}` },
+          { id: receivingAccountId }).run(txnClient),
+      ]));
+
+    console.log('Transfer attempt 1');
+    let caught1 = false;
+    const client1 = await pool.connect();
+
+    try {
+      await transferMoney(accountA.id, accountB.id, 60, client1);
+
+    } catch (err: any) {
+      console.log(err.message, '/', err.detail);
+      caught1 = true;
+
+    } finally {
+      if (!caught1) throw new Error("Uh-oh: we should have caught an error");
+      client1.release();
+    }
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+
+    console.log('Transfer attempt 2');
+    let caught2 = false;
+    const client2 = await pool.connect();
+
+    try {
+      await db.serializable(client2, txnClient => Promise.all([
+        transferMoney(accountA.id, accountB.id, 40, txnClient),
+        transferMoney(accountA.id, accountC.id, 40, txnClient)
+      ]));
+
+    } catch (err: any) {
+      console.log(err.message, '/', err.detail);
+      caught2 = true;
+
+    } finally {
+      if (!caught2) throw new Error("Uh-oh: we should have caught an error");
+      client2.release();
+    }
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+  })();
+
+  await (async () => {
+    console.log('\n=== Passing a plain Client to transaction helper ===\n');
+
+    const [accountA, accountB, accountC] = await db.insert('bankAccounts',
+      [{ balance: 50 }, { balance: 50 }, { balance: 50 }]).run(pool);
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+
+    const transferMoney = (sendingAccountId: number, receivingAccountId: number, amount: number, txnClientOrQueryable: db.Queryable | db.TxnClientForSerializable) =>
+      db.serializable(txnClientOrQueryable, txnClient => Promise.all([
+        db.update('bankAccounts',
+          { balance: db.sql`${db.self} - ${db.param(amount)}` },
+          { id: sendingAccountId }).run(txnClient),
+        db.update('bankAccounts',
+          { balance: db.sql`${db.self} + ${db.param(amount)}` },
+          { id: receivingAccountId }).run(txnClient),
+      ]));
+
+    console.log('Transfer attempt 1');
+    let caught1 = false;
+    const client1 = new pg.Client({ connectionString });
+    await client1.connect();
+
+    try {
+      await transferMoney(accountA.id, accountB.id, 60, client1);
+
+    } catch (err: any) {
+      console.log(err.message, '/', err.detail);
+      caught1 = true;
+
+    } finally {
+      if (!caught1) throw new Error("Uh-oh: we should have caught an error");
+      await client1.end();
+    }
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+
+    console.log('Transfer attempt 2');
+    let caught2 = false;
+    const client2 = new pg.Client({ connectionString });
+    await client2.connect();
+
+    try {
+      await db.serializable(client2, txnClient => Promise.all([
+        transferMoney(accountA.id, accountB.id, 40, txnClient),
+        transferMoney(accountA.id, accountC.id, 40, txnClient)
+      ]));
+
+    } catch (err: any) {
+      console.log(err.message, '/', err.detail);
+      caught2 = true;
+
+    } finally {
+      if (!caught2) throw new Error("Uh-oh: we should have caught an error");
+      await client2.end();
+    }
+
+    console.log('Balances', await db.select('bankAccounts', db.all).run(pool));
+  })();
+
 
   await (async () => {
     console.log('\n=== RETURNING options ===\n');
