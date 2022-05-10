@@ -19,6 +19,14 @@
     "extra": {
       "include": "*",
       "exclude": []
+    },
+    "uk": {
+      "include": "*",
+      "exclude": []
+    },
+    "us": {
+      "include": "*",
+      "exclude": []
     }
   },
   "columnOptions": {
