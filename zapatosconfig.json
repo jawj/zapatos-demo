@@ -3,7 +3,7 @@
     "connectionString": "{{DB_URL}}"
   },
   "outExt": ".ts",
-  "schemaJSDoc": true,
+  "schemaJSDoc": false,
   "debugListener": false,
   "schemas": {
     "public": {
@@ -20,11 +20,11 @@
       "include": "*",
       "exclude": []
     },
-    "uk": {
+    "UK": {
       "include": "*",
       "exclude": []
     },
-    "us": {
+    "US": {
       "include": "*",
       "exclude": []
     }

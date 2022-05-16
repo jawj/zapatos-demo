@@ -4,12 +4,13 @@ import * as pg from 'pg';
 import * as debug from 'debug';
 import * as db from 'zapatos/db';
 import { conditions as dc } from 'zapatos/db';
-import type * as s from 'zapatos/schema';
+import * as s from 'zapatos/schema';
 import type * as c from 'zapatos/custom';
 
 import * as moment from 'moment';
 import { DateTime } from 'luxon';
 import { DateString, TimestampString, TimestampTzString } from 'zapatos/db';
+
 
 const
   queryDebug = debug('db:query'),
@@ -36,7 +37,7 @@ const
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableInOtherSchema", "tags"];
+    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tags", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -1478,6 +1479,79 @@ const
     console.log('z (should have no y property): ', z);
 
     await db.select('authors', defined({ name: undefined })).run(pool);
+  })();
+
+  await (async () => {
+    console.log('\n=== issue #105: OR ===\n');
+
+    const cond1 = [
+      db.sql`${"name"} = ${db.param('Jane Austen')}`,
+      db.sql`${"name"} = ${db.param('Ernest Hemingway')}`,
+    ];
+
+    //await db.select('authors', dc.or(...cond1)).run(pool);
+    void cond1;
+
+    const cond2 = [
+      { name: 'Jane Austen' },
+      { name: 'Ernest Hemingway' },
+    ];
+
+    //await db.select('authors', dc.or(...cond2)).run(pool);
+    void cond2;
+  })();
+
+  await (async () => {
+    console.log('\n=== multi-schema stuff ===\n');
+
+    const [brighton, handstp] = await db.insert("UK.constituencies", [
+      { constituencyName: 'Brighton Pavilion', nation: 'England' },
+      { constituencyName: 'Holborn and St Pancras', nation: 'England' },
+    ]).run(pool);
+
+    await db.insert("UK.mps", [
+      { mpName: 'Caroline Lucas', party: 'Green', constituencyId: brighton.constituencyId },
+      { mpName: 'Keir Starmer', party: 'Labour', constituencyId: handstp.constituencyId },
+    ]).run(pool);
+
+    const [ny, ga] = await db.insert("US.states", [
+      { stateId: 'NY', stateName: 'New York' },
+      { stateId: 'GA', stateName: 'Georgia' },
+    ]).run(pool);
+
+    const ca = await db.upsert("US.states", { stateId: 'CA', stateName: 'Cauliflower' }, "stateId").run(pool);
+    await db.update("US.states", { stateName: 'California' }, { stateId: ca.stateId }).run(pool);
+
+    const [ny14, ga5] = await db.insert("US.districts", [
+      { stateId: ny.stateId, ordinality: 14 },
+      { stateId: ga.stateId, ordinality: 5 },
+    ]).run(pool);
+
+    await db.insert("US.representatives", [
+      { representativeName: 'Alexandria Ocasio-Cortez', districtId: ny14.districtId, party: 'Democrat' },
+      { representativeName: 'Nikema Williams', districtId: ga5.districtId, party: 'Democrat' },
+    ]).run(pool);
+
+    const reps = await db.select("US.representatives", db.all, {
+      lateral: {
+        district: db.selectExactlyOne("US.districts", { districtId: db.parent() }, {
+          lateral: {
+            state: db.selectExactlyOne("US.states", { stateId: db.parent() })
+          }
+        })
+      }
+    }).run(pool);
+
+    console.dir(reps, { depth: null });
+
+    const mps = await db.sql
+      <s.UK.mps.SQL | s.UK.constituencies.SQL, (s.UK.mps.Selectable & s.UK.constituencies.Selectable)[]>
+      `SELECT * FROM ${"UK.mps"}
+       JOIN ${"UK.constituencies"} USING (${"constituencyId"})
+       WHERE ${"party"} = ${db.param('Green')}`.run(pool);
+
+    console.dir(mps.map(mp => [mp.mpName, mp.constituencyName]));
+
   })();
 
   await pool.end();
