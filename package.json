@@ -14,11 +14,11 @@
     "@types/luxon": "^2.3.2",
     "@types/pg": "^8.6.5",
     "debug": "^4.3.4",
-    "luxon": "^2.3.2",
+    "luxon": "^2.4.0",
     "moment": "^2.29.3",
     "pg": "^8.7.3",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4",
-    "zapatos": "^5.0.2"
+    "zapatos": "^6.0.1"
   }
 }

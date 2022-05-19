@@ -3,7 +3,7 @@
     "connectionString": "{{DB_URL}}"
   },
   "outExt": ".ts",
-  "schemaJSDoc": false,
+  "schemaJSDoc": true,
   "debugListener": false,
   "schemas": {
     "public": {
@@ -32,6 +32,12 @@
   "columnOptions": {
     "dimensions": {
       "metres": {
+        "insert": "excluded",
+        "update": "excluded"
+      }
+    },
+    "UK.constituencies": {
+      "updatedAt": {
         "insert": "excluded",
         "update": "excluded"
       }

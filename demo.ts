@@ -1285,7 +1285,7 @@ const
       book = await db.insert('books', {
         authorId: author!.id,
         title: 'Some book or other',
-        createdAt: db.sql`now()`,
+        createdAt: dc.now,
       }, {
         returning: ['id'],
         extras: {
