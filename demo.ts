@@ -1554,5 +1554,61 @@ const
 
   })();
 
+  await (async () => {
+    console.log('\n=== issues #115 and #116: SQLFragment in Whereable and Updatable ===\n');
+
+    const authorQuery = db.sql<s.authors.SQL, s.authors.Selectable[]>`
+  SELECT ${'id'} FROM ${'authors'} WHERE ${{ name: 'Douglas Adams' }}`;
+
+    const bookQuery = db.sql<s.books.SQL, s.books.Selectable[]>`
+  SELECT * FROM ${'books'} WHERE ${{ authorId: db.sql`${db.self} = (${authorQuery})` }}`;
+
+    await bookQuery.run(pool);
+
+    const altBookQuery = db.sql<s.books.SQL, s.books.Selectable[]>`
+  SELECT * FROM ${'books'} WHERE ${'authorId'} = (${authorQuery})`;
+
+    await altBookQuery.run(pool);
+
+    const lateralBookQuery = db.selectOne('authors', { name: 'Douglas Adams' }, {
+      lateral: db.select('books', { authorId: db.parent('id') })
+    });
+
+    await lateralBookQuery.run(pool);
+
+    const author = { name: 'Jane Austen' };
+
+    await db.sql<s.authors.SQL, []>`
+      UPDATE ${'authors'}
+      SET (${db.cols(author)}) = ROW(${db.vals(author)})
+      WHERE false
+    `.run(pool);
+
+    await db.update('authors', author, db.sql<s.authors.SQL | s.books.SQL>`
+      ${'id'} = (SELECT ${'authorId'} FROM ${'books'} WHERE ${'title'} = ${db.param('Pride and Prejudice')})
+    `).run(pool);
+
+    await db.update('authors', author, {
+      id: db.sql<s.authors.SQL | s.books.SQL>`
+        ${db.self} = (SELECT ${'authorId'} FROM ${'books'} WHERE ${'title'} = ${db.param('Pride and Prejudice')})`
+    }).run(pool);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== SELECT locking clauses in alternate schemas (issue #118) ===\n');
+    const
+      cons1 = await db.select("UK.constituencies", db.all, { lock: { for: "NO KEY UPDATE" } }).run(pool),
+      cons2 = await db.select("UK.constituencies", db.all, { alias: "uc", lock: { for: "UPDATE", of: "uc", wait: "NOWAIT" } }).run(pool),
+      cons3 = await db.select("UK.constituencies", db.all, { lock: { for: "UPDATE", of: "constituencies", wait: "NOWAIT" } }).run(pool);
+
+    // @ts-expect-error
+    console.log(db.select("UK.constituencies", db.all, { lock: { for: "UPDATE", of: "UK.constituencies" } }).compile());
+    // @ts-expect-error
+    console.log(db.select("UK.constituencies", db.all, { alias: "cons", lock: { for: "UPDATE", of: "con" } }).compile());
+
+    void cons1, cons2, cons3;  // no warnings, please
+  })();
+
   await pool.end();
 })();

@@ -4769,24 +4769,55 @@ declare module 'zapatos/schema' {
   }
 
 
+  /* === schema: empty === */
+
+  export namespace empty {
+  
+    /* --- enums --- */
+    /* (none) */
+  
+    /* --- tables --- */
+    /* (none) */
+  
+    /* --- aggregate types --- */
+  
+    // `never` rather than `any` types would be more accurate in this no-tables case, but they stop `shortcuts.ts` compiling
+  
+    export type Table = never;
+    export type Selectable = never;
+    export type JSONSelectable = never;
+    export type Whereable = never;
+    export type Insertable = never;
+    export type Updatable = never;
+    export type UniqueIndex = never;
+    export type Column = never;
+  
+    export type AllBaseTables = [];
+    export type AllForeignTables = [];
+    export type AllViews = [];
+    export type AllMaterializedViews = [];
+    export type AllTablesAndViews = [];
+  }
+
+
   /* === global aggregate types === */
 
-  export type Schema = 'public' | 'extra' | 'UK' | 'US';
-  export type Table = public.Table | extra.Table | UK.Table | US.Table;
-  export type Selectable = public.Selectable | extra.Selectable | UK.Selectable | US.Selectable;
-  export type JSONSelectable = public.JSONSelectable | extra.JSONSelectable | UK.JSONSelectable | US.JSONSelectable;
-  export type Whereable = public.Whereable | extra.Whereable | UK.Whereable | US.Whereable;
-  export type Insertable = public.Insertable | extra.Insertable | UK.Insertable | US.Insertable;
-  export type Updatable = public.Updatable | extra.Updatable | UK.Updatable | US.Updatable;
-  export type UniqueIndex = public.UniqueIndex | extra.UniqueIndex | UK.UniqueIndex | US.UniqueIndex;
-  export type Column = public.Column | extra.Column | UK.Column | US.Column;
+  export type Schema = 'public' | 'extra' | 'UK' | 'US' | 'empty';
+  export type Table = public.Table | extra.Table | UK.Table | US.Table | empty.Table;
+  export type Selectable = public.Selectable | extra.Selectable | UK.Selectable | US.Selectable | empty.Selectable;
+  export type JSONSelectable = public.JSONSelectable | extra.JSONSelectable | UK.JSONSelectable | US.JSONSelectable | empty.JSONSelectable;
+  export type Whereable = public.Whereable | extra.Whereable | UK.Whereable | US.Whereable | empty.Whereable;
+  export type Insertable = public.Insertable | extra.Insertable | UK.Insertable | US.Insertable | empty.Insertable;
+  export type Updatable = public.Updatable | extra.Updatable | UK.Updatable | US.Updatable | empty.Updatable;
+  export type UniqueIndex = public.UniqueIndex | extra.UniqueIndex | UK.UniqueIndex | US.UniqueIndex | empty.UniqueIndex;
+  export type Column = public.Column | extra.Column | UK.Column | US.Column | empty.Column;
 
-  export type AllSchemas = ['public', 'extra', 'UK', 'US'];
-  export type AllBaseTables = [...public.AllBaseTables, ...extra.AllBaseTables, ...UK.AllBaseTables, ...US.AllBaseTables];
-  export type AllForeignTables = [...public.AllForeignTables, ...extra.AllForeignTables, ...UK.AllForeignTables, ...US.AllForeignTables];
-  export type AllViews = [...public.AllViews, ...extra.AllViews, ...UK.AllViews, ...US.AllViews];
-  export type AllMaterializedViews = [...public.AllMaterializedViews, ...extra.AllMaterializedViews, ...UK.AllMaterializedViews, ...US.AllMaterializedViews];
-  export type AllTablesAndViews = [...public.AllTablesAndViews, ...extra.AllTablesAndViews, ...UK.AllTablesAndViews, ...US.AllTablesAndViews];
+  export type AllSchemas = ['public', 'extra', 'UK', 'US', 'empty'];
+  export type AllBaseTables = [...public.AllBaseTables, ...extra.AllBaseTables, ...UK.AllBaseTables, ...US.AllBaseTables, ...empty.AllBaseTables];
+  export type AllForeignTables = [...public.AllForeignTables, ...extra.AllForeignTables, ...UK.AllForeignTables, ...US.AllForeignTables, ...empty.AllForeignTables];
+  export type AllViews = [...public.AllViews, ...extra.AllViews, ...UK.AllViews, ...US.AllViews, ...empty.AllViews];
+  export type AllMaterializedViews = [...public.AllMaterializedViews, ...extra.AllMaterializedViews, ...UK.AllMaterializedViews, ...US.AllMaterializedViews, ...empty.AllMaterializedViews];
+  export type AllTablesAndViews = [...public.AllTablesAndViews, ...extra.AllTablesAndViews, ...UK.AllTablesAndViews, ...US.AllTablesAndViews, ...empty.AllTablesAndViews];
 
 
   /* === lookups === */
