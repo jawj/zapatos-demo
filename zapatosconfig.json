@@ -2,18 +2,19 @@
   "db": {
     "connectionString": "{{DB_URL}}"
   },
+  "nameTransforms": true,
   "outExt": ".ts",
-  "schemaJSDoc": true,
+  "schemaJSDoc": false,
   "debugListener": false,
   "schemas": {
     "public": {
       "include": "*",
       "exclude": [
-        "geography_columns",
-        "geometry_columns",
-        "raster_columns",
-        "raster_overviews",
-        "spatial_ref_sys"
+        "geographyColumns",
+        "geometryColumns",
+        "rasterColumns",
+        "rasterOverviews",
+        "spatialRefSys"
       ]
     },
     "extra": {

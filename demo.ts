@@ -37,7 +37,7 @@ const
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tags", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
+    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numericTest", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tags", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -1102,7 +1102,7 @@ const
 
     await db.insert('dimensions', {
       millimetres: 100,
-      default_id: 100,  // allowed
+      defaultId: 100,  // allowed
       // always_id: 100,  // not allowed, is now a type error
     }).run(pool);
 
@@ -1118,12 +1118,12 @@ const
     const
       then = new Date('1989-01-21'),
       now = new Date(),
-      file = await db.insert('files', { created_at: then, updated_at: then, path: '/imgs/a.jpg' }).run(pool);
+      file = await db.insert('files', { createdAt: then, updatedAt: then, path: '/imgs/a.jpg' }).run(pool);
 
     await db.upsert('files',
-      { id: file.id, path: '/otherimgs/a.jpg', created_at: now, updated_at: now },
+      { id: file.id, path: '/otherimgs/a.jpg', createdAt: now, updatedAt: now },
       'id',
-      { updateColumns: ['path', 'updated_at'] }
+      { updateColumns: ['path', 'updatedAt'] }
     ).run(pool);
   })();
 
@@ -1134,21 +1134,21 @@ const
       now = new Date(),
       then = new Date(Date.now() + 3600000),
       files = await db.insert('files', [
-        { created_at: now, updated_at: now, path: '/imgs/a.jpg' },
-        { created_at: then, updated_at: then, path: '/imgs/b.jpg' },
+        { createdAt: now, updatedAt: now, path: '/imgs/a.jpg' },
+        { createdAt: then, updatedAt: then, path: '/imgs/b.jpg' },
       ]).run(pool),
       images = await db.insert('images', [
-        { file_id: files[0].id, height: 100, width: 200 },
-        { file_id: files[1].id, height: 200, width: 100 },
+        { fileId: files[0].id, height: 100, width: 200 },
+        { fileId: files[1].id, height: 200, width: 100 },
       ]).run(pool);
 
     const sortedImages = await db.select('images', db.all, {
-      lateral: { file: db.selectExactlyOne('files', { id: db.parent('file_id') }) },
+      lateral: { file: db.selectExactlyOne('files', { id: db.parent('fileId') }) },
       order: { by: db.sql`result->'created_at'`, direction: 'ASC' }
     }).run(pool);
 
     const matchingImages = await db.select('images', db.sql`result->>'path' = ${db.param('/imgs/b.jpg')}`, {
-      lateral: { file: db.selectExactlyOne('files', { id: db.parent('file_id') }) }
+      lateral: { file: db.selectExactlyOne('files', { id: db.parent('fileId') }) }
     }).run(pool)
 
     void images, sortedImages, matchingImages;
@@ -1173,27 +1173,27 @@ const
   await (async () => {
     console.log('\n=== issue #71 ===\n');
 
-    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "test_id" }, db.constraint("chat_pkey")).run(pool);
-    await db.upsert("chat", [{ telegram_chat_id: "test_id" }, { telegram_chat_id: "extra_id" }], db.constraint("chat_pkey")).run(pool)
+    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegramChatId: "test_id" }, db.constraint("chatPkey")).run(pool);
+    await db.upsert("chat", [{ telegramChatId: "test_id" }, { telegramChatId: "extra_id" }], db.constraint("chatPkey")).run(pool)
 
-    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "test_id" }, "telegram_chat_id").run(pool);
-    await db.upsert("chat", [{ telegram_chat_id: "test_id" }, { telegram_chat_id: "other_id" }], "telegram_chat_id").run(pool);
+    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegramChatId: "test_id" }, "telegramChatId").run(pool);
+    await db.upsert("chat", [{ telegramChatId: "test_id" }, { telegramChatId: "other_id" }], "telegramChatId").run(pool);
 
-    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegram_chat_id: "new_id", created: new Date() }, "telegram_chat_id").run(pool);
-    await db.upsert("chat", [{ telegram_chat_id: "new_id", created: new Date() }, { telegram_chat_id: "other_id", created: new Date() }], "telegram_chat_id").run(pool);
-    await db.upsert("chat", [{ telegram_chat_id: "new_id", created: new Date() }], "telegram_chat_id").run(pool);
+    for (let i = 0; i < 2; i++) await db.upsert("chat", { telegramChatId: "new_id", created: new Date() }, "telegramChatId").run(pool);
+    await db.upsert("chat", [{ telegramChatId: "new_id", created: new Date() }, { telegramChatId: "other_id", created: new Date() }], "telegramChatId").run(pool);
+    await db.upsert("chat", [{ telegramChatId: "new_id", created: new Date() }], "telegramChatId").run(pool);
 
     const
-      r1 = await db.upsert("chat", { telegram_chat_id: "test_id", created: new Date() }, "telegram_chat_id", { updateColumns: [] }).run(pool),
-      r2 = await db.upsert("chat", [{ telegram_chat_id: "test_id", created: new Date() }], "telegram_chat_id", { updateColumns: [] }).run(pool);
+      r1 = await db.upsert("chat", { telegramChatId: "test_id", created: new Date() }, "telegramChatId", { updateColumns: [] }).run(pool),
+      r2 = await db.upsert("chat", [{ telegramChatId: "test_id", created: new Date() }], "telegramChatId", { updateColumns: [] }).run(pool);
 
     console.log('do nothing single insert result', r1);
     console.log('do nothing array insert result', r2);
 
     const
-      x = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { reportAction: 'suppress' }).run(pool),
-      y = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { updateColumns: [] }).run(pool),
-      z = await db.upsert("chat", { telegram_chat_id: "another_id" }, db.constraint("chat_pkey"), { updateColumns: db.doNothing }).run(pool);
+      x = await db.upsert("chat", { telegramChatId: "another_id" }, db.constraint("chatPkey"), { reportAction: 'suppress' }).run(pool),
+      y = await db.upsert("chat", { telegramChatId: "another_id" }, db.constraint("chatPkey"), { updateColumns: [] }).run(pool),
+      z = await db.upsert("chat", { telegramChatId: "another_id" }, db.constraint("chatPkey"), { updateColumns: db.doNothing }).run(pool);
 
     // @ts-expect-error -- $action is undefined
     console.log(x.$action);
@@ -1232,7 +1232,7 @@ const
       console.log(arg);
     }
     const processDb = (): s.files.Insertable => {
-      return { path: '/', created_at: new Date(), updated_at: new Date() };
+      return { path: '/', createdAt: new Date(), updatedAt: new Date() };
     }
     const someInsertable = processDb();
 
@@ -1243,7 +1243,7 @@ const
     type MyInsertableTypeAlias = { [s in keyof s.files.Insertable]: s.files.Insertable[s] };
 
     const processDbAlt = (): MyInsertableTypeAlias => {
-      return { path: '/', created_at: new Date(), updated_at: new Date() };
+      return { path: '/', createdAt: new Date(), updatedAt: new Date() };
     }
     const someTypeAlias = processDbAlt();
     myFunction(someTypeAlias);
