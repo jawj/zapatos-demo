@@ -30,31 +30,31 @@ declare module 'zapatos/schema' {
   export namespace appleTransactions {
     export type Table = 'appleTransactions';
     export interface Selectable {
-      environment: c.PgApple_environment;
+      environment: appleEnvironment;
       originalTransactionId: string;
       accountId: number;
       latestReceiptData: string | null;
     }
     export interface JSONSelectable {
-      environment: c.PgApple_environment;
+      environment: appleEnvironment;
       originalTransactionId: string;
       accountId: number;
       latestReceiptData: string | null;
     }
     export interface Whereable {
-      environment?: c.PgApple_environment | db.Parameter<c.PgApple_environment> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, c.PgApple_environment | db.Parameter<c.PgApple_environment> | db.SQLFragment | db.ParentColumn>;
+      environment?: appleEnvironment | db.Parameter<appleEnvironment> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, appleEnvironment | db.Parameter<appleEnvironment> | db.SQLFragment | db.ParentColumn>;
       originalTransactionId?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       accountId?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
       latestReceiptData?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
     }
     export interface Insertable {
-      environment: c.PgApple_environment | db.Parameter<c.PgApple_environment> | db.SQLFragment;
+      environment: appleEnvironment | db.Parameter<appleEnvironment> | db.SQLFragment;
       originalTransactionId: string | db.Parameter<string> | db.SQLFragment;
       accountId: number | db.Parameter<number> | db.SQLFragment;
       latestReceiptData?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
-      environment?: c.PgApple_environment | db.Parameter<c.PgApple_environment> | db.SQLFragment | db.SQLFragment<any, c.PgApple_environment | db.Parameter<c.PgApple_environment> | db.SQLFragment>;
+      environment?: appleEnvironment | db.Parameter<appleEnvironment> | db.SQLFragment | db.SQLFragment<any, appleEnvironment | db.Parameter<appleEnvironment> | db.SQLFragment>;
       originalTransactionId?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       accountId?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
       latestReceiptData?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;

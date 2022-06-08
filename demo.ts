@@ -27,11 +27,13 @@ db.setConfig({
     txnDebug(`(%s) %s`, strFromTxnId(txnId), message),
   castArrayParamsToJson: true,
   castObjectParamsToJson: true,
+  nameTransforms: true,
 });
 
 const
   connectionString = process.env.DB_URL,
-  pool = new pg.Pool({ connectionString });
+  pool = new pg.Pool({ connectionString }),
+  { allColumnsJSON } = db.getConfig().nameTransforms.pg;
 
 (async () => {
   await (async () => {
@@ -138,7 +140,7 @@ const
 
     const
       query = db.sql<bookAuthorSQL>`
-        SELECT ${"books"}.*, to_jsonb(${"authors"}.*) as ${"author"}
+        SELECT ${"books"}.*, ${allColumnsJSON("authors")} as ${"author"}
         FROM ${"books"} JOIN ${"authors"} 
           ON ${"books"}.${"authorId"} = ${"authors"}.${"id"}`,
       bookAuthors: bookAuthorSelectable[] = await query.run(pool);
@@ -158,7 +160,7 @@ const
 
     const
       query = db.sql<authorBooksSQL>`
-        SELECT ${"authors"}.*, coalesce(json_agg(${"books"}.*) filter (where ${"books"}.* is not null), '[]') AS ${"books"}
+        SELECT ${"authors"}.*, coalesce(json_agg(${allColumnsJSON("books")}) FILTER (WHERE ${"books"}.* IS NOT NULL), '[]') AS ${"books"}
         FROM ${"authors"} LEFT JOIN ${"books"} 
           ON ${"authors"}.${"id"} = ${"books"}.${"authorId"}
         GROUP BY ${"authors"}.${"id"}`,
@@ -180,7 +182,7 @@ const
       query = db.sql<authorBooksSQL>`
         SELECT ${"authors"}.*, bq.* 
         FROM ${"authors"} CROSS JOIN LATERAL (
-          SELECT coalesce(json_agg(${"books"}.*), '[]') AS ${"books"}
+          SELECT coalesce(json_agg(${allColumnsJSON("books")}), '[]') AS ${"books"}
           FROM ${"books"}
           WHERE ${"books"}.${"authorId"} = ${"authors"}.${"id"}
         ) bq`,
@@ -201,7 +203,7 @@ const
       query = db.sql<authorBookTagsSQL>`
         SELECT ${"authors"}.*, bq.*
         FROM ${"authors"} CROSS JOIN LATERAL (
-          SELECT coalesce(jsonb_agg(to_jsonb(${"books"}.*) || to_jsonb(tq.*)), '[]') AS ${"books"}
+          SELECT coalesce(jsonb_agg(${allColumnsJSON("books")} || ${allColumnsJSON("tq")}), '[]') AS ${"books"}
           FROM ${"books"} CROSS JOIN LATERAL (
             SELECT coalesce(jsonb_agg(${"tags"}.${"tag"}), '[]') AS ${"tags"} 
             FROM ${"tags"}
@@ -217,7 +219,7 @@ const
   await (async () => {
     console.log('\n=== Querying a subset of fields ===\n');
 
-    const bookCols = <const>['id', 'title'];
+    const bookCols = <const>['id', 'title', 'authorId'];
     type BookDatum = s.books.OnlyCols<typeof bookCols>;
 
     const

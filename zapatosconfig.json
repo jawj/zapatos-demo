@@ -2,7 +2,7 @@
   "db": {
     "connectionString": "{{DB_URL}}"
   },
-  "nameTransforms": true,
+  "tsNameTransforms": true,
   "outExt": ".ts",
   "schemaJSDoc": false,
   "debugListener": false,
