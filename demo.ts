@@ -333,10 +333,11 @@ const
   await (async () => {
     console.log('\n=== Shortcut one-to-many join ===\n');
 
-    const q = await db.select('authors', db.all, {
-      lateral: { books: db.select('books', { authorId: db.parent('id') }) }
-    });
-    const r = await q.run(pool);
+    const
+      q = await db.select('authors', db.all, {
+        lateral: { books: db.select('books', { authorId: db.parent('id') }) }
+      }),
+      r = await q.run(pool);
     console.dir(r, { depth: null });
   })();
 
