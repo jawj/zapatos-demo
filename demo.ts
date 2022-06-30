@@ -37,7 +37,7 @@ const
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tags", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
+    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableWithColumnWithSpaces", "tags", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -1606,6 +1606,16 @@ const
     console.log(db.select("UK.constituencies", db.all, { lock: { for: "UPDATE", of: "UK.constituencies" } }).compile());
     // @ts-expect-error
     console.log(db.select("UK.constituencies", db.all, { alias: "cons", lock: { for: "UPDATE", of: "con" } }).compile());
+
+    void cons1, cons2, cons3;  // no warnings, please
+  })();
+
+  await (async () => {
+    console.log('\n=== Column names with spaces (issue #122) ===\n');
+    const
+      cons1 = await db.insert("tableWithColumnWithSpaces", { "column name has spaces": 'which is probably a Bad Idea' }).run(pool),
+      cons2 = await db.select("tableWithColumnWithSpaces", db.all).run(pool),
+      cons3 = await db.selectOne("tableWithColumnWithSpaces", db.all, { columns: ['column name has spaces'] }).run(pool);
 
     void cons1, cons2, cons3;  // no warnings, please
   })();

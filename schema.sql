@@ -283,6 +283,5 @@ $$ LANGUAGE PLPGSQL;
 CREATE TRIGGER "insertTriggerUKConstituenciesUpdatedAt" BEFORE INSERT ON "UK"."constituencies" FOR EACH ROW EXECUTE PROCEDURE "UK"."refreshUpdatedAt"();
 CREATE TRIGGER "updateTriggerUKConstituenciesUpdatedAt" BEFORE UPDATE ON "UK"."constituencies" FOR EACH ROW EXECUTE PROCEDURE "UK"."refreshUpdatedAt"();
 
-
-
+CREATE TABLE "tableWithColumnWithSpaces" ( "column name has spaces" text );
 

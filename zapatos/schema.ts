@@ -3675,6 +3675,59 @@ declare module 'zapatos/schema' {
   }
 
   /**
+   * **tableWithColumnWithSpaces**
+   * - Table in database
+   */
+  export namespace tableWithColumnWithSpaces {
+    export type Table = 'tableWithColumnWithSpaces';
+    export interface Selectable {
+      /**
+      * **tableWithColumnWithSpaces.column name has spaces**
+      * - `text` in database
+      * - Nullable, no default
+      */
+    "column name has spaces": string | null;
+    }
+    export interface JSONSelectable {
+      /**
+      * **tableWithColumnWithSpaces.column name has spaces**
+      * - `text` in database
+      * - Nullable, no default
+      */
+    "column name has spaces": string | null;
+    }
+    export interface Whereable {
+      /**
+      * **tableWithColumnWithSpaces.column name has spaces**
+      * - `text` in database
+      * - Nullable, no default
+      */
+    "column name has spaces"?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **tableWithColumnWithSpaces.column name has spaces**
+      * - `text` in database
+      * - Nullable, no default
+      */
+    "column name has spaces"?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **tableWithColumnWithSpaces.column name has spaces**
+      * - `text` in database
+      * - Nullable, no default
+      */
+    "column name has spaces"?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = never;
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
    * **tags**
    * - Table in database
    */
@@ -3959,20 +4012,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = appleTransactions.Table | authors.Table | bankAccounts.Table | books.Table | bools.Table | chapters.Table | chat.Table | customTypes.Table | dimensions.Table | emailAuthentication.Table | employees.Table | files.Table | identityTest.Table | images.Table | int8test.Table | matBooks.Table | matCustom.Table | nameCounts.Table | numeric_mview.Table | numeric_test.Table | orderProducts.Table | orders.Table | paragraphs.Table | photos.Table | products.Table | stores.Table | stringreturning.Table | subjectPhotos.Table | subjects.Table | tags.Table | testview.Table | testviewnoins.Table | words.Table;
-    export type Selectable = appleTransactions.Selectable | authors.Selectable | bankAccounts.Selectable | books.Selectable | bools.Selectable | chapters.Selectable | chat.Selectable | customTypes.Selectable | dimensions.Selectable | emailAuthentication.Selectable | employees.Selectable | files.Selectable | identityTest.Selectable | images.Selectable | int8test.Selectable | matBooks.Selectable | matCustom.Selectable | nameCounts.Selectable | numeric_mview.Selectable | numeric_test.Selectable | orderProducts.Selectable | orders.Selectable | paragraphs.Selectable | photos.Selectable | products.Selectable | stores.Selectable | stringreturning.Selectable | subjectPhotos.Selectable | subjects.Selectable | tags.Selectable | testview.Selectable | testviewnoins.Selectable | words.Selectable;
-    export type JSONSelectable = appleTransactions.JSONSelectable | authors.JSONSelectable | bankAccounts.JSONSelectable | books.JSONSelectable | bools.JSONSelectable | chapters.JSONSelectable | chat.JSONSelectable | customTypes.JSONSelectable | dimensions.JSONSelectable | emailAuthentication.JSONSelectable | employees.JSONSelectable | files.JSONSelectable | identityTest.JSONSelectable | images.JSONSelectable | int8test.JSONSelectable | matBooks.JSONSelectable | matCustom.JSONSelectable | nameCounts.JSONSelectable | numeric_mview.JSONSelectable | numeric_test.JSONSelectable | orderProducts.JSONSelectable | orders.JSONSelectable | paragraphs.JSONSelectable | photos.JSONSelectable | products.JSONSelectable | stores.JSONSelectable | stringreturning.JSONSelectable | subjectPhotos.JSONSelectable | subjects.JSONSelectable | tags.JSONSelectable | testview.JSONSelectable | testviewnoins.JSONSelectable | words.JSONSelectable;
-    export type Whereable = appleTransactions.Whereable | authors.Whereable | bankAccounts.Whereable | books.Whereable | bools.Whereable | chapters.Whereable | chat.Whereable | customTypes.Whereable | dimensions.Whereable | emailAuthentication.Whereable | employees.Whereable | files.Whereable | identityTest.Whereable | images.Whereable | int8test.Whereable | matBooks.Whereable | matCustom.Whereable | nameCounts.Whereable | numeric_mview.Whereable | numeric_test.Whereable | orderProducts.Whereable | orders.Whereable | paragraphs.Whereable | photos.Whereable | products.Whereable | stores.Whereable | stringreturning.Whereable | subjectPhotos.Whereable | subjects.Whereable | tags.Whereable | testview.Whereable | testviewnoins.Whereable | words.Whereable;
-    export type Insertable = appleTransactions.Insertable | authors.Insertable | bankAccounts.Insertable | books.Insertable | bools.Insertable | chapters.Insertable | chat.Insertable | customTypes.Insertable | dimensions.Insertable | emailAuthentication.Insertable | employees.Insertable | files.Insertable | identityTest.Insertable | images.Insertable | int8test.Insertable | matBooks.Insertable | matCustom.Insertable | nameCounts.Insertable | numeric_mview.Insertable | numeric_test.Insertable | orderProducts.Insertable | orders.Insertable | paragraphs.Insertable | photos.Insertable | products.Insertable | stores.Insertable | stringreturning.Insertable | subjectPhotos.Insertable | subjects.Insertable | tags.Insertable | testview.Insertable | testviewnoins.Insertable | words.Insertable;
-    export type Updatable = appleTransactions.Updatable | authors.Updatable | bankAccounts.Updatable | books.Updatable | bools.Updatable | chapters.Updatable | chat.Updatable | customTypes.Updatable | dimensions.Updatable | emailAuthentication.Updatable | employees.Updatable | files.Updatable | identityTest.Updatable | images.Updatable | int8test.Updatable | matBooks.Updatable | matCustom.Updatable | nameCounts.Updatable | numeric_mview.Updatable | numeric_test.Updatable | orderProducts.Updatable | orders.Updatable | paragraphs.Updatable | photos.Updatable | products.Updatable | stores.Updatable | stringreturning.Updatable | subjectPhotos.Updatable | subjects.Updatable | tags.Updatable | testview.Updatable | testviewnoins.Updatable | words.Updatable;
-    export type UniqueIndex = appleTransactions.UniqueIndex | authors.UniqueIndex | bankAccounts.UniqueIndex | books.UniqueIndex | bools.UniqueIndex | chapters.UniqueIndex | chat.UniqueIndex | customTypes.UniqueIndex | dimensions.UniqueIndex | emailAuthentication.UniqueIndex | employees.UniqueIndex | files.UniqueIndex | identityTest.UniqueIndex | images.UniqueIndex | int8test.UniqueIndex | matBooks.UniqueIndex | matCustom.UniqueIndex | nameCounts.UniqueIndex | numeric_mview.UniqueIndex | numeric_test.UniqueIndex | orderProducts.UniqueIndex | orders.UniqueIndex | paragraphs.UniqueIndex | photos.UniqueIndex | products.UniqueIndex | stores.UniqueIndex | stringreturning.UniqueIndex | subjectPhotos.UniqueIndex | subjects.UniqueIndex | tags.UniqueIndex | testview.UniqueIndex | testviewnoins.UniqueIndex | words.UniqueIndex;
-    export type Column = appleTransactions.Column | authors.Column | bankAccounts.Column | books.Column | bools.Column | chapters.Column | chat.Column | customTypes.Column | dimensions.Column | emailAuthentication.Column | employees.Column | files.Column | identityTest.Column | images.Column | int8test.Column | matBooks.Column | matCustom.Column | nameCounts.Column | numeric_mview.Column | numeric_test.Column | orderProducts.Column | orders.Column | paragraphs.Column | photos.Column | products.Column | stores.Column | stringreturning.Column | subjectPhotos.Column | subjects.Column | tags.Column | testview.Column | testviewnoins.Column | words.Column;
+    export type Table = appleTransactions.Table | authors.Table | bankAccounts.Table | books.Table | bools.Table | chapters.Table | chat.Table | customTypes.Table | dimensions.Table | emailAuthentication.Table | employees.Table | files.Table | identityTest.Table | images.Table | int8test.Table | matBooks.Table | matCustom.Table | nameCounts.Table | numeric_mview.Table | numeric_test.Table | orderProducts.Table | orders.Table | paragraphs.Table | photos.Table | products.Table | stores.Table | stringreturning.Table | subjectPhotos.Table | subjects.Table | tableWithColumnWithSpaces.Table | tags.Table | testview.Table | testviewnoins.Table | words.Table;
+    export type Selectable = appleTransactions.Selectable | authors.Selectable | bankAccounts.Selectable | books.Selectable | bools.Selectable | chapters.Selectable | chat.Selectable | customTypes.Selectable | dimensions.Selectable | emailAuthentication.Selectable | employees.Selectable | files.Selectable | identityTest.Selectable | images.Selectable | int8test.Selectable | matBooks.Selectable | matCustom.Selectable | nameCounts.Selectable | numeric_mview.Selectable | numeric_test.Selectable | orderProducts.Selectable | orders.Selectable | paragraphs.Selectable | photos.Selectable | products.Selectable | stores.Selectable | stringreturning.Selectable | subjectPhotos.Selectable | subjects.Selectable | tableWithColumnWithSpaces.Selectable | tags.Selectable | testview.Selectable | testviewnoins.Selectable | words.Selectable;
+    export type JSONSelectable = appleTransactions.JSONSelectable | authors.JSONSelectable | bankAccounts.JSONSelectable | books.JSONSelectable | bools.JSONSelectable | chapters.JSONSelectable | chat.JSONSelectable | customTypes.JSONSelectable | dimensions.JSONSelectable | emailAuthentication.JSONSelectable | employees.JSONSelectable | files.JSONSelectable | identityTest.JSONSelectable | images.JSONSelectable | int8test.JSONSelectable | matBooks.JSONSelectable | matCustom.JSONSelectable | nameCounts.JSONSelectable | numeric_mview.JSONSelectable | numeric_test.JSONSelectable | orderProducts.JSONSelectable | orders.JSONSelectable | paragraphs.JSONSelectable | photos.JSONSelectable | products.JSONSelectable | stores.JSONSelectable | stringreturning.JSONSelectable | subjectPhotos.JSONSelectable | subjects.JSONSelectable | tableWithColumnWithSpaces.JSONSelectable | tags.JSONSelectable | testview.JSONSelectable | testviewnoins.JSONSelectable | words.JSONSelectable;
+    export type Whereable = appleTransactions.Whereable | authors.Whereable | bankAccounts.Whereable | books.Whereable | bools.Whereable | chapters.Whereable | chat.Whereable | customTypes.Whereable | dimensions.Whereable | emailAuthentication.Whereable | employees.Whereable | files.Whereable | identityTest.Whereable | images.Whereable | int8test.Whereable | matBooks.Whereable | matCustom.Whereable | nameCounts.Whereable | numeric_mview.Whereable | numeric_test.Whereable | orderProducts.Whereable | orders.Whereable | paragraphs.Whereable | photos.Whereable | products.Whereable | stores.Whereable | stringreturning.Whereable | subjectPhotos.Whereable | subjects.Whereable | tableWithColumnWithSpaces.Whereable | tags.Whereable | testview.Whereable | testviewnoins.Whereable | words.Whereable;
+    export type Insertable = appleTransactions.Insertable | authors.Insertable | bankAccounts.Insertable | books.Insertable | bools.Insertable | chapters.Insertable | chat.Insertable | customTypes.Insertable | dimensions.Insertable | emailAuthentication.Insertable | employees.Insertable | files.Insertable | identityTest.Insertable | images.Insertable | int8test.Insertable | matBooks.Insertable | matCustom.Insertable | nameCounts.Insertable | numeric_mview.Insertable | numeric_test.Insertable | orderProducts.Insertable | orders.Insertable | paragraphs.Insertable | photos.Insertable | products.Insertable | stores.Insertable | stringreturning.Insertable | subjectPhotos.Insertable | subjects.Insertable | tableWithColumnWithSpaces.Insertable | tags.Insertable | testview.Insertable | testviewnoins.Insertable | words.Insertable;
+    export type Updatable = appleTransactions.Updatable | authors.Updatable | bankAccounts.Updatable | books.Updatable | bools.Updatable | chapters.Updatable | chat.Updatable | customTypes.Updatable | dimensions.Updatable | emailAuthentication.Updatable | employees.Updatable | files.Updatable | identityTest.Updatable | images.Updatable | int8test.Updatable | matBooks.Updatable | matCustom.Updatable | nameCounts.Updatable | numeric_mview.Updatable | numeric_test.Updatable | orderProducts.Updatable | orders.Updatable | paragraphs.Updatable | photos.Updatable | products.Updatable | stores.Updatable | stringreturning.Updatable | subjectPhotos.Updatable | subjects.Updatable | tableWithColumnWithSpaces.Updatable | tags.Updatable | testview.Updatable | testviewnoins.Updatable | words.Updatable;
+    export type UniqueIndex = appleTransactions.UniqueIndex | authors.UniqueIndex | bankAccounts.UniqueIndex | books.UniqueIndex | bools.UniqueIndex | chapters.UniqueIndex | chat.UniqueIndex | customTypes.UniqueIndex | dimensions.UniqueIndex | emailAuthentication.UniqueIndex | employees.UniqueIndex | files.UniqueIndex | identityTest.UniqueIndex | images.UniqueIndex | int8test.UniqueIndex | matBooks.UniqueIndex | matCustom.UniqueIndex | nameCounts.UniqueIndex | numeric_mview.UniqueIndex | numeric_test.UniqueIndex | orderProducts.UniqueIndex | orders.UniqueIndex | paragraphs.UniqueIndex | photos.UniqueIndex | products.UniqueIndex | stores.UniqueIndex | stringreturning.UniqueIndex | subjectPhotos.UniqueIndex | subjects.UniqueIndex | tableWithColumnWithSpaces.UniqueIndex | tags.UniqueIndex | testview.UniqueIndex | testviewnoins.UniqueIndex | words.UniqueIndex;
+    export type Column = appleTransactions.Column | authors.Column | bankAccounts.Column | books.Column | bools.Column | chapters.Column | chat.Column | customTypes.Column | dimensions.Column | emailAuthentication.Column | employees.Column | files.Column | identityTest.Column | images.Column | int8test.Column | matBooks.Column | matCustom.Column | nameCounts.Column | numeric_mview.Column | numeric_test.Column | orderProducts.Column | orders.Column | paragraphs.Column | photos.Column | products.Column | stores.Column | stringreturning.Column | subjectPhotos.Column | subjects.Column | tableWithColumnWithSpaces.Column | tags.Column | testview.Column | testviewnoins.Column | words.Column;
   
-    export type AllBaseTables = [appleTransactions.Table, authors.Table, bankAccounts.Table, books.Table, bools.Table, chapters.Table, chat.Table, customTypes.Table, dimensions.Table, emailAuthentication.Table, employees.Table, files.Table, identityTest.Table, images.Table, int8test.Table, nameCounts.Table, numeric_test.Table, orderProducts.Table, orders.Table, paragraphs.Table, photos.Table, products.Table, stores.Table, stringreturning.Table, subjectPhotos.Table, subjects.Table, tags.Table];
+    export type AllBaseTables = [appleTransactions.Table, authors.Table, bankAccounts.Table, books.Table, bools.Table, chapters.Table, chat.Table, customTypes.Table, dimensions.Table, emailAuthentication.Table, employees.Table, files.Table, identityTest.Table, images.Table, int8test.Table, nameCounts.Table, numeric_test.Table, orderProducts.Table, orders.Table, paragraphs.Table, photos.Table, products.Table, stores.Table, stringreturning.Table, subjectPhotos.Table, subjects.Table, tableWithColumnWithSpaces.Table, tags.Table];
     export type AllForeignTables = [words.Table];
     export type AllViews = [testview.Table, testviewnoins.Table];
     export type AllMaterializedViews = [matBooks.Table, matCustom.Table, numeric_mview.Table];
-    export type AllTablesAndViews = [appleTransactions.Table, authors.Table, bankAccounts.Table, books.Table, bools.Table, chapters.Table, chat.Table, customTypes.Table, dimensions.Table, emailAuthentication.Table, employees.Table, files.Table, identityTest.Table, images.Table, int8test.Table, matBooks.Table, matCustom.Table, nameCounts.Table, numeric_mview.Table, numeric_test.Table, orderProducts.Table, orders.Table, paragraphs.Table, photos.Table, products.Table, stores.Table, stringreturning.Table, subjectPhotos.Table, subjects.Table, tags.Table, testview.Table, testviewnoins.Table, words.Table];
+    export type AllTablesAndViews = [appleTransactions.Table, authors.Table, bankAccounts.Table, books.Table, bools.Table, chapters.Table, chat.Table, customTypes.Table, dimensions.Table, emailAuthentication.Table, employees.Table, files.Table, identityTest.Table, images.Table, int8test.Table, matBooks.Table, matCustom.Table, nameCounts.Table, numeric_mview.Table, numeric_test.Table, orderProducts.Table, orders.Table, paragraphs.Table, photos.Table, products.Table, stores.Table, stringreturning.Table, subjectPhotos.Table, subjects.Table, tableWithColumnWithSpaces.Table, tags.Table, testview.Table, testviewnoins.Table, words.Table];
   }
 
 
@@ -4852,6 +4905,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.Selectable;
     "subjectPhotos": subjectPhotos.Selectable;
     "subjects": subjects.Selectable;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.Selectable;
     "tags": tags.Selectable;
     "testview": testview.Selectable;
     "testviewnoins": testviewnoins.Selectable;
@@ -4894,6 +4948,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.JSONSelectable;
     "subjectPhotos": subjectPhotos.JSONSelectable;
     "subjects": subjects.JSONSelectable;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.JSONSelectable;
     "tags": tags.JSONSelectable;
     "testview": testview.JSONSelectable;
     "testviewnoins": testviewnoins.JSONSelectable;
@@ -4936,6 +4991,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.Whereable;
     "subjectPhotos": subjectPhotos.Whereable;
     "subjects": subjects.Whereable;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.Whereable;
     "tags": tags.Whereable;
     "testview": testview.Whereable;
     "testviewnoins": testviewnoins.Whereable;
@@ -4978,6 +5034,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.Insertable;
     "subjectPhotos": subjectPhotos.Insertable;
     "subjects": subjects.Insertable;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.Insertable;
     "tags": tags.Insertable;
     "testview": testview.Insertable;
     "testviewnoins": testviewnoins.Insertable;
@@ -5020,6 +5077,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.Updatable;
     "subjectPhotos": subjectPhotos.Updatable;
     "subjects": subjects.Updatable;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.Updatable;
     "tags": tags.Updatable;
     "testview": testview.Updatable;
     "testviewnoins": testviewnoins.Updatable;
@@ -5062,6 +5120,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.UniqueIndex;
     "subjectPhotos": subjectPhotos.UniqueIndex;
     "subjects": subjects.UniqueIndex;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.UniqueIndex;
     "tags": tags.UniqueIndex;
     "testview": testview.UniqueIndex;
     "testviewnoins": testviewnoins.UniqueIndex;
@@ -5104,6 +5163,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.Column;
     "subjectPhotos": subjectPhotos.Column;
     "subjects": subjects.Column;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.Column;
     "tags": tags.Column;
     "testview": testview.Column;
     "testviewnoins": testviewnoins.Column;
@@ -5146,6 +5206,7 @@ declare module 'zapatos/schema' {
     "stringreturning": stringreturning.SQL;
     "subjectPhotos": subjectPhotos.SQL;
     "subjects": subjects.SQL;
+    "tableWithColumnWithSpaces": tableWithColumnWithSpaces.SQL;
     "tags": tags.SQL;
     "testview": testview.SQL;
     "testviewnoins": testviewnoins.SQL;
