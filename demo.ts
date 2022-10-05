@@ -37,7 +37,7 @@ const
   await (async () => {
 
     // setup (uses shortcut functions)
-    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableWithColumnWithSpaces", "tags", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
+    const allTables: s.AllBaseTables = ["appleTransactions", "authors", "bankAccounts", "books", "bools", "chapters", "chat", "customTypes", "dimensions", "emailAuthentication", "employees", "files", "identityTest", "images", "int8test", "nameCounts", "numeric_test", "orderProducts", "orders", "paragraphs", "photos", "products", "stores", "stringreturning", "subjectPhotos", "subjects", "tableWithColumnWithSpaces", "tags", "urls", "extra.tableInOtherSchema", "UK.constituencies", "UK.mps", "US.districts", "US.representatives", "US.states"];
     await db.truncate(allTables, "CASCADE").run(pool);
 
     const insertedIdentityTest = await db.insert("identityTest", { data: 'Xyz' }).run(pool);
@@ -601,7 +601,7 @@ const
     console.log('\n=== IN queries with vals ===\n');
     const
       ids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
-      authors = await db.select("authors", { id: db.sql`${db.self} IN (${db.vals(ids)})` }).run(pool);
+      authors = await db.select("authors", { id: db.sql<s.authors.SQL>`${db.self} IN (${db.vals(ids)})` }).run(pool);
 
     void authors;  // no warnings, please
   })();
@@ -1481,24 +1481,44 @@ const
     await db.select('authors', defined({ name: undefined })).run(pool);
   })();
 
+  /* 
+  // NOT SUPPORTED
+
   await (async () => {
     console.log('\n=== issue #105: OR ===\n');
 
-    const cond1 = [
-      db.sql`${"name"} = ${db.param('Jane Austen')}`,
-      db.sql`${"name"} = ${db.param('Ernest Hemingway')}`,
-    ];
-
-    //await db.select('authors', dc.or(...cond1)).run(pool);
-    void cond1;
-
-    const cond2 = [
+    const cond = [
       { name: 'Jane Austen' },
-      { name: 'Ernest Hemingway' },
+      { name: 'John Smith' },
     ];
 
-    //await db.select('authors', dc.or(...cond2)).run(pool);
-    void cond2;
+    // Note: this is NOT an error (we only get excess property checks if the array is inlined in the shortcut call)
+    // const cond = [
+    //   { name: 'Jane Austen' },
+    //   { xyz: 12 },
+    // ];
+
+    await db.select('authors', cond).run(pool);
+  })();
+  */
+
+  await (async () => {
+    console.log('\n=== issue #105: following up dc.or ===\n');
+
+    const cond = [
+      { name: 'Jane Austen' },
+      { isLiving: true },
+    ];
+
+    await db.select('authors', dc.or(...cond)).run(pool);
+    await db.select('authors', dc.and(...cond)).run(pool);
+    await db.select('authors', dc.not({ name: 'Jane Austen' })).run(pool);
+
+    const letterRangeCond = [
+      { name: dc.gt('H') },
+      { name: dc.lt('K') },
+    ];
+    await db.select('authors', dc.and(...letterRangeCond)).run(pool);
   })();
 
   await (async () => {
@@ -1618,6 +1638,31 @@ const
       cons3 = await db.selectOne("tableWithColumnWithSpaces", db.all, { columns: ['column name has spaces'] }).run(pool);
 
     void cons1, cons2, cons3;  // no warnings, please
+  })();
+
+  await (async () => {
+    console.log('\n=== Wrapping object (issue #126) ===\n');
+    const
+      hasBooks1 = await db.selectOne('books', db.all).run(pool) !== undefined,
+      hasBooks2 = await db.selectOne('books', { title: "Qwerty" }).run(pool) !== undefined;
+
+    console.log(hasBooks1, hasBooks2);
+  })();
+
+  await (async () => {
+    console.log('\n=== Upsert should allow updateValues for columns that are not inserted ===\n');
+
+    let url;
+    for (let i = 0; i < 3; i++) {
+      url = await db.upsert('urls', { url: 'http://mackerron.com' }, 'url', {
+        updateValues: {
+          timesSubmitted: db.sql<s.urls.SQL>`${"urls"}.${"timesSubmitted"} + 1`,
+          lastSubmitted: db.sql`now()`,
+        }
+      }).run(pool);
+    }
+
+    console.log(url);
   })();
 
   await pool.end();
