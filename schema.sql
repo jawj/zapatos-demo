@@ -295,3 +295,8 @@ create table "urls"
 , "lastVisited" timestamptz
 , "timesVisited" int not null default 0
 );
+
+CREATE OR REPLACE FUNCTION variadicfunction(VARIADIC _input_string_array text[]) RETURNS text AS $$ 
+  SELECT array_to_string($1, ':')
+$$ LANGUAGE SQL IMMUTABLE;
+

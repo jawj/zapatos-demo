@@ -4262,7 +4262,7 @@ declare module 'zapatos/schema' {
 
   /* --- aggregate types --- */
 
-  export namespace public {  
+  export namespace public {
     export type Table = appleTransactions.Table | authors.Table | bankAccounts.Table | books.Table | bools.Table | chapters.Table | chat.Table | customTypes.Table | dimensions.Table | emailAuthentication.Table | employees.Table | files.Table | identityTest.Table | images.Table | int8test.Table | matBooks.Table | matCustom.Table | nameCounts.Table | numeric_mview.Table | numeric_test.Table | orderProducts.Table | orders.Table | paragraphs.Table | photos.Table | products.Table | stores.Table | stringreturning.Table | subjectPhotos.Table | subjects.Table | tableWithColumnWithSpaces.Table | tags.Table | testview.Table | testviewnoins.Table | urls.Table | words.Table;
     export type Selectable = appleTransactions.Selectable | authors.Selectable | bankAccounts.Selectable | books.Selectable | bools.Selectable | chapters.Selectable | chat.Selectable | customTypes.Selectable | dimensions.Selectable | emailAuthentication.Selectable | employees.Selectable | files.Selectable | identityTest.Selectable | images.Selectable | int8test.Selectable | matBooks.Selectable | matCustom.Selectable | nameCounts.Selectable | numeric_mview.Selectable | numeric_test.Selectable | orderProducts.Selectable | orders.Selectable | paragraphs.Selectable | photos.Selectable | products.Selectable | stores.Selectable | stringreturning.Selectable | subjectPhotos.Selectable | subjects.Selectable | tableWithColumnWithSpaces.Selectable | tags.Selectable | testview.Selectable | testviewnoins.Selectable | urls.Selectable | words.Selectable;
     export type JSONSelectable = appleTransactions.JSONSelectable | authors.JSONSelectable | bankAccounts.JSONSelectable | books.JSONSelectable | bools.JSONSelectable | chapters.JSONSelectable | chat.JSONSelectable | customTypes.JSONSelectable | dimensions.JSONSelectable | emailAuthentication.JSONSelectable | employees.JSONSelectable | files.JSONSelectable | identityTest.JSONSelectable | images.JSONSelectable | int8test.JSONSelectable | matBooks.JSONSelectable | matCustom.JSONSelectable | nameCounts.JSONSelectable | numeric_mview.JSONSelectable | numeric_test.JSONSelectable | orderProducts.JSONSelectable | orders.JSONSelectable | paragraphs.JSONSelectable | photos.JSONSelectable | products.JSONSelectable | stores.JSONSelectable | stringreturning.JSONSelectable | subjectPhotos.JSONSelectable | subjects.JSONSelectable | tableWithColumnWithSpaces.JSONSelectable | tags.JSONSelectable | testview.JSONSelectable | testviewnoins.JSONSelectable | urls.JSONSelectable | words.JSONSelectable;
@@ -4271,7 +4271,7 @@ declare module 'zapatos/schema' {
     export type Updatable = appleTransactions.Updatable | authors.Updatable | bankAccounts.Updatable | books.Updatable | bools.Updatable | chapters.Updatable | chat.Updatable | customTypes.Updatable | dimensions.Updatable | emailAuthentication.Updatable | employees.Updatable | files.Updatable | identityTest.Updatable | images.Updatable | int8test.Updatable | matBooks.Updatable | matCustom.Updatable | nameCounts.Updatable | numeric_mview.Updatable | numeric_test.Updatable | orderProducts.Updatable | orders.Updatable | paragraphs.Updatable | photos.Updatable | products.Updatable | stores.Updatable | stringreturning.Updatable | subjectPhotos.Updatable | subjects.Updatable | tableWithColumnWithSpaces.Updatable | tags.Updatable | testview.Updatable | testviewnoins.Updatable | urls.Updatable | words.Updatable;
     export type UniqueIndex = appleTransactions.UniqueIndex | authors.UniqueIndex | bankAccounts.UniqueIndex | books.UniqueIndex | bools.UniqueIndex | chapters.UniqueIndex | chat.UniqueIndex | customTypes.UniqueIndex | dimensions.UniqueIndex | emailAuthentication.UniqueIndex | employees.UniqueIndex | files.UniqueIndex | identityTest.UniqueIndex | images.UniqueIndex | int8test.UniqueIndex | matBooks.UniqueIndex | matCustom.UniqueIndex | nameCounts.UniqueIndex | numeric_mview.UniqueIndex | numeric_test.UniqueIndex | orderProducts.UniqueIndex | orders.UniqueIndex | paragraphs.UniqueIndex | photos.UniqueIndex | products.UniqueIndex | stores.UniqueIndex | stringreturning.UniqueIndex | subjectPhotos.UniqueIndex | subjects.UniqueIndex | tableWithColumnWithSpaces.UniqueIndex | tags.UniqueIndex | testview.UniqueIndex | testviewnoins.UniqueIndex | urls.UniqueIndex | words.UniqueIndex;
     export type Column = appleTransactions.Column | authors.Column | bankAccounts.Column | books.Column | bools.Column | chapters.Column | chat.Column | customTypes.Column | dimensions.Column | emailAuthentication.Column | employees.Column | files.Column | identityTest.Column | images.Column | int8test.Column | matBooks.Column | matCustom.Column | nameCounts.Column | numeric_mview.Column | numeric_test.Column | orderProducts.Column | orders.Column | paragraphs.Column | photos.Column | products.Column | stores.Column | stringreturning.Column | subjectPhotos.Column | subjects.Column | tableWithColumnWithSpaces.Column | tags.Column | testview.Column | testviewnoins.Column | urls.Column | words.Column;
-  
+
     export type AllBaseTables = [appleTransactions.Table, authors.Table, bankAccounts.Table, books.Table, bools.Table, chapters.Table, chat.Table, customTypes.Table, dimensions.Table, emailAuthentication.Table, employees.Table, files.Table, identityTest.Table, images.Table, int8test.Table, nameCounts.Table, numeric_test.Table, orderProducts.Table, orders.Table, paragraphs.Table, photos.Table, products.Table, stores.Table, stringreturning.Table, subjectPhotos.Table, subjects.Table, tableWithColumnWithSpaces.Table, tags.Table, urls.Table];
     export type AllForeignTables = [words.Table];
     export type AllViews = [testview.Table, testviewnoins.Table];
@@ -4284,12 +4284,12 @@ declare module 'zapatos/schema' {
   /* === schema: extra === */
 
   export namespace extra {
-  
+
     /* --- enums --- */
     /* (none) */
-  
+
     /* --- tables --- */
-  
+
     /**
      * **extra.tableInOtherSchema**
      * - Table in database
@@ -4372,9 +4372,9 @@ declare module 'zapatos/schema' {
       export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
       export type SQL = SQLExpression | SQLExpression[];
     }
-  
+
     /* --- aggregate types --- */
-  
+
     export type Table = tableInOtherSchema.Table;
     export type Selectable = tableInOtherSchema.Selectable;
     export type JSONSelectable = tableInOtherSchema.JSONSelectable;
@@ -4383,7 +4383,7 @@ declare module 'zapatos/schema' {
     export type Updatable = tableInOtherSchema.Updatable;
     export type UniqueIndex = tableInOtherSchema.UniqueIndex;
     export type Column = tableInOtherSchema.Column;
-  
+
     export type AllBaseTables = [tableInOtherSchema.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
@@ -4395,9 +4395,9 @@ declare module 'zapatos/schema' {
   /* === schema: UK === */
 
   export namespace UK {
-  
+
     /* --- enums --- */
-  
+
     export type nations = 'England' | 'Northern Ireland' | 'Scotland' | 'Wales';
     export namespace every {
       export type nations = ['England', 'Northern Ireland', 'Scotland', 'Wales'];
@@ -4406,9 +4406,9 @@ declare module 'zapatos/schema' {
     export namespace every {
       export type parties = ['Conservative', 'Green', 'Labour', 'Other'];
     }
-  
+
     /* --- tables --- */
-  
+
     /**
      * **UK.constituencies**
      * - Table in database
@@ -4539,7 +4539,7 @@ declare module 'zapatos/schema' {
       export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
       export type SQL = SQLExpression | SQLExpression[];
     }
-  
+
     /**
      * **UK.mps**
      * - Table in database
@@ -4682,9 +4682,9 @@ declare module 'zapatos/schema' {
       export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
       export type SQL = SQLExpression | SQLExpression[];
     }
-  
+
     /* --- aggregate types --- */
-  
+
     export type Table = constituencies.Table | mps.Table;
     export type Selectable = constituencies.Selectable | mps.Selectable;
     export type JSONSelectable = constituencies.JSONSelectable | mps.JSONSelectable;
@@ -4693,7 +4693,7 @@ declare module 'zapatos/schema' {
     export type Updatable = constituencies.Updatable | mps.Updatable;
     export type UniqueIndex = constituencies.UniqueIndex | mps.UniqueIndex;
     export type Column = constituencies.Column | mps.Column;
-  
+
     export type AllBaseTables = [constituencies.Table, mps.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
@@ -4705,16 +4705,16 @@ declare module 'zapatos/schema' {
   /* === schema: US === */
 
   export namespace US {
-  
+
     /* --- enums --- */
-  
+
     export type parties = 'Democrat' | 'Green' | 'Other' | 'Republican';
     export namespace every {
       export type parties = ['Democrat', 'Green', 'Other', 'Republican'];
     }
-  
+
     /* --- tables --- */
-  
+
     /**
      * **US.districts**
      * - Table in database
@@ -4827,7 +4827,7 @@ declare module 'zapatos/schema' {
       export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
       export type SQL = SQLExpression | SQLExpression[];
     }
-  
+
     /**
      * **US.representatives**
      * - Table in database
@@ -4970,7 +4970,7 @@ declare module 'zapatos/schema' {
       export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
       export type SQL = SQLExpression | SQLExpression[];
     }
-  
+
     /**
      * **US.states**
      * - Table in database
@@ -5053,9 +5053,9 @@ declare module 'zapatos/schema' {
       export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
       export type SQL = SQLExpression | SQLExpression[];
     }
-  
+
     /* --- aggregate types --- */
-  
+
     export type Table = districts.Table | representatives.Table | states.Table;
     export type Selectable = districts.Selectable | representatives.Selectable | states.Selectable;
     export type JSONSelectable = districts.JSONSelectable | representatives.JSONSelectable | states.JSONSelectable;
@@ -5064,7 +5064,7 @@ declare module 'zapatos/schema' {
     export type Updatable = districts.Updatable | representatives.Updatable | states.Updatable;
     export type UniqueIndex = districts.UniqueIndex | representatives.UniqueIndex | states.UniqueIndex;
     export type Column = districts.Column | representatives.Column | states.Column;
-  
+
     export type AllBaseTables = [districts.Table, representatives.Table, states.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
@@ -5076,17 +5076,17 @@ declare module 'zapatos/schema' {
   /* === schema: empty === */
 
   export namespace empty {
-  
+
     /* --- enums --- */
     /* (none) */
-  
+
     /* --- tables --- */
     /* (none) */
-  
+
     /* --- aggregate types --- */
-  
+
     // `never` rather than `any` types would be more accurate in this no-tables case, but they stop `shortcuts.ts` compiling
-  
+
     export type Table = never;
     export type Selectable = never;
     export type JSONSelectable = never;
@@ -5095,7 +5095,7 @@ declare module 'zapatos/schema' {
     export type Updatable = never;
     export type UniqueIndex = never;
     export type Column = never;
-  
+
     export type AllBaseTables = [];
     export type AllForeignTables = [];
     export type AllViews = [];

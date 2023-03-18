@@ -103,7 +103,7 @@ const
       authorId = 1,
       days = 7,
       query = db.sql<s.books.SQL>`
-        SELECT * FROM ${"books"} 
+        SELECT * FROM ${"books"}
         WHERE ${{
           authorId,
           createdAt: db.sql<s.books.SQL>`
@@ -139,7 +139,7 @@ const
     const
       query = db.sql<bookAuthorSQL>`
         SELECT ${"books"}.*, to_jsonb(${"authors"}.*) as ${"author"}
-        FROM ${"books"} JOIN ${"authors"} 
+        FROM ${"books"} JOIN ${"authors"}
           ON ${"books"}.${"authorId"} = ${"authors"}.${"id"}`,
       bookAuthors: bookAuthorSelectable[] = await query.run(pool);
 
@@ -159,7 +159,7 @@ const
     const
       query = db.sql<authorBooksSQL>`
         SELECT ${"authors"}.*, coalesce(json_agg(${"books"}.*) filter (where ${"books"}.* is not null), '[]') AS ${"books"}
-        FROM ${"authors"} LEFT JOIN ${"books"} 
+        FROM ${"authors"} LEFT JOIN ${"books"}
           ON ${"authors"}.${"id"} = ${"books"}.${"authorId"}
         GROUP BY ${"authors"}.${"id"}`,
       authorBooks: authorBooksSelectable[] = await query.run(pool);
@@ -178,7 +178,7 @@ const
 
     const
       query = db.sql<authorBooksSQL>`
-        SELECT ${"authors"}.*, bq.* 
+        SELECT ${"authors"}.*, bq.*
         FROM ${"authors"} CROSS JOIN LATERAL (
           SELECT coalesce(json_agg(${"books"}.*), '[]') AS ${"books"}
           FROM ${"books"}
@@ -203,7 +203,7 @@ const
         FROM ${"authors"} CROSS JOIN LATERAL (
           SELECT coalesce(jsonb_agg(to_jsonb(${"books"}.*) || to_jsonb(tq.*)), '[]') AS ${"books"}
           FROM ${"books"} CROSS JOIN LATERAL (
-            SELECT coalesce(jsonb_agg(${"tags"}.${"tag"}), '[]') AS ${"tags"} 
+            SELECT coalesce(jsonb_agg(${"tags"}.${"tag"}), '[]') AS ${"tags"}
             FROM ${"tags"}
             WHERE ${"tags"}.${"bookId"} = ${"books"}.${"id"}
           ) tq
@@ -331,7 +331,7 @@ const
   await (async () => {
     console.log('\n=== Shortcut one-to-many join ===\n');
 
-    const q = await db.select('authors', db.all, {
+    const q = db.select('authors', db.all, {
       lateral: { books: db.select('books', { authorId: db.parent('id') }) }
     });
     const r = await q.run(pool);
@@ -1481,7 +1481,7 @@ const
     await db.select('authors', defined({ name: undefined })).run(pool);
   })();
 
-  /* 
+  /*
   // NOT SUPPORTED
 
   await (async () => {
@@ -1663,6 +1663,69 @@ const
     }
 
     console.log(url);
+  })();
+
+  await (async () => {
+    console.log('\n=== Issue #135: same columns in multiple queries ===\n');
+
+    await db.select('books', db.all, { columns: ['id', 'title'] });
+
+    const someColumns: s.books.Column[] = ['id', 'title'];
+    await db.select('books', db.all, { columns: someColumns });
+
+    const theSameColumns = ['id', 'title'] as const;
+    await db.select('books', db.all, { columns: theSameColumns });
+  })();
+
+
+  const mapWithSeparator = <TIn, TSep, TOut>(
+    arr: readonly TIn[],
+    separator: TSep,
+    cb: (x: TIn, i: number, a: readonly TIn[]) => TOut
+  ): (TOut | TSep)[] => {
+
+    const result: (TOut | TSep)[] = [];
+    for (let i = 0, len = arr.length; i < len; i++) {
+      if (i > 0) result.push(separator);
+      result.push(cb(arr[i], i, arr));
+    }
+    return result;
+  };
+
+  const paramsWithComma = (arr: any[]): (db.Parameter | db.SQLFragment)[] =>
+    mapWithSeparator(arr, db.sql`, `, x => db.param(x));
+
+  await (async () => {
+    console.log('\n=== Issue #145: variadic text arguments ===\n');
+
+    const
+      args = ['a', 'b', 'c'],
+      result = await db.sql`SELECT variadicfunction(${paramsWithComma(args)})`.run(pool);
+
+    void result;
+  })();
+
+  await (async () => {
+    console.log('\n=== Issue on @neondatabase/serverless: self vs db.self ===\n');
+
+    globalThis.self ??= globalThis as typeof self;
+
+    let err: Error | undefined = undefined;
+    try {
+      const
+        ids = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
+        authors = await db.select("authors", { id: db.sql<s.authors.SQL>`${self} IN (${db.vals(ids)})` }).run(pool);
+
+      void authors;
+
+    } catch (e: any) {
+      err = e;
+
+    } finally {
+      if (err === undefined || !err.message.startsWith('Did you use `self`')) throw new Error('Wrong use of self should have been caught');
+    }
+
+
   })();
 
   await pool.end();
