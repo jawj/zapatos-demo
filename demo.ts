@@ -1724,9 +1724,23 @@ const
     } finally {
       if (err === undefined || !err.message.startsWith('Did you use `self`')) throw new Error('Wrong use of self should have been caught');
     }
-
-
   })();
+
+  await (async () => {
+    console.log('\n=== Issue #149/PR #150: selectOne -> undefined vs null ===\n');
+    const r1 = await db.selectOne('authors', { id: -1 }).run(pool);
+    const r2 = await db.select('books', db.all, {
+      lateral: {
+        author: db.selectOne('authors', { id: -1 })
+      }
+    }).run(pool);
+
+    console.log('should be undefined:', r1);
+    console.log('should be null:', r2[0].author);
+  })();
+
+  const envs: s.every.appleEnvironment = ["PROD", "Sandbox"];
+  void envs;
 
   await pool.end();
 })();
