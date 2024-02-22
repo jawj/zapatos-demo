@@ -1,2 +1,2 @@
 #/bin/zsh
-DB_URL="postgresql://localhost:5434/zapatos_demo" npx zapatos
+DB_URL="postgresql://localhost/zapatos_demo" npx zapatos

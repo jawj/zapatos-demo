@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node --files
+#!/usr/bin/env npx ts-node --files
 
 import * as pg from 'pg';
 import * as debug from 'debug';
