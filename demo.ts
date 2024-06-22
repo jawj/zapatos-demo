@@ -1739,8 +1739,34 @@ const
     console.log('should be null:', r2[0].author);
   })();
 
+  db.enableCustomJSONParsingForLargeNumbers(pg);
+
+  await (async () => {
+    console.log('\n=== Issue #175 ===\n');
+
+    const
+      insertResult = await db.insert('int8test', { num: '29007199254740991' }).run(pool),
+      selectResult = await db.selectOne('int8test', { num: '29007199254740991' }).run(pool);
+
+    console.log('Both of these must be 29007199254740991 as string:');
+    console.log({ insertResult, selectResult });
+  })();
+
+  await (async () => {
+    console.log('\n=== Issue #172 ===\n');
+
+    const
+      insertResult = await db.insert('int8test', { num: BigInt('9007199254740993') }).run(pool),
+      selectResult = await db.selectOne('int8test', { num: BigInt('9007199254740993') }).run(pool);
+
+    console.log('Both of these must be 9007199254740993 as string:');
+    console.log({ insertResult, selectResult });
+
+  })();
+
   const envs: s.every.appleEnvironment = ["PROD", "Sandbox"];
   void envs;
 
   await pool.end();
 })();
+
