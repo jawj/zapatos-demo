@@ -1764,6 +1764,35 @@ const
 
   })();
 
+  await (async () => {
+    console.log('\n=== Issue #177 ===\n');
+
+    // INSERT INTO deposits(customer_id, amount)
+    // SELECT id, $2
+    // FROM customers
+    // WHERE customers.external_id = $1
+
+    const result = await db.insert('books', db.select('books', db.all)).run(pool);
+
+  })();
+
+  await (async () => {
+    console.log('\n=== Issue #178 ===\n');
+
+    const
+      arrA = ['a', 'b'],
+      query = db.select('books', dc.and(
+        { title: dc.isIn(arrA) },
+        dc.or(
+          { authorId: dc.isIn([1, 2]) },
+          { updatedAt: dc.isIn([new Date()]) }
+        ))),
+      sql = query.compile(),
+      result = await query.run(pool);
+
+    console.log({ sql, result });
+  })();
+
   const envs: s.every.appleEnvironment = ["PROD", "Sandbox"];
   void envs;
 
