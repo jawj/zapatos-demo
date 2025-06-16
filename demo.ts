@@ -1765,18 +1765,6 @@ const
   })();
 
   await (async () => {
-    console.log('\n=== Issue #177 ===\n');
-
-    // INSERT INTO deposits(customer_id, amount)
-    // SELECT id, $2
-    // FROM customers
-    // WHERE customers.external_id = $1
-
-    const result = await db.insert('books', db.select('books', db.all)).run(pool);
-
-  })();
-
-  await (async () => {
     console.log('\n=== Issue #178 ===\n');
 
     const
@@ -1791,6 +1779,20 @@ const
       result = await query.run(pool);
 
     console.log({ sql, result });
+  })();
+
+  await (async () => {
+    console.log('\n=== Issue #190 ===\n');
+    let squarePics;
+
+    squarePics = db.select('images', db.sql`${'width'} = ${'height'}`);
+    console.log(squarePics.compile());
+
+    squarePics = db.select('images', { width: db.sql`${db.self} = ${'height'}` });
+    console.log(squarePics.compile());
+
+    squarePics = db.select('images', { width: dc.eq(db.sql`${'height'}`) });
+    console.log(squarePics.compile());
   })();
 
   const envs: s.every.appleEnvironment = ["PROD", "Sandbox"];
